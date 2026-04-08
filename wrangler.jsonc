@@ -1,6 +1,6 @@
 {
   "compatibility_date": "2026-04-08",
-  "compatibility_flags": ["global_fetch_strictly_public"],
+  "compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
   "name": "astro",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "assets": {
@@ -10,4 +10,14 @@
   "observability": {
     "enabled": true,
   },
+  "vars": {
+    "BETTER_AUTH_URL": "https://astro.wuxiadreams.workers.dev/",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wuxiadreams",
+      "database_id": "02d3726d-4f1e-4a35-9769-e4dfc0c25a1a",
+    },
+  ],
 }

@@ -1,25 +1,15 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from "@layouts/Layout.astro";
 ---
 
-<Layout title="注册 - Wuxia Dreams">
-  <main class="register-page">
-    <section class="register-card">
+<Layout title="登录 - Wuxia Dreams">
+  <main class="login-page">
+    <section class="login-card">
       <p class="eyebrow">WUXIA DREAMS</p>
-      <h1>创建账号</h1>
-      <p class="subtitle">踏入江湖前，先创建你的身份。</p>
+      <h1>重返江湖</h1>
+      <p class="subtitle">欢迎回来，大侠。</p>
 
-      <form id="register-form" class="register-form">
-        <label class="field">
-          <span>昵称</span>
-          <input
-            type="text"
-            name="name"
-            required
-            placeholder="输入你的江湖名"
-          />
-        </label>
-
+      <form id="login-form" class="login-form">
         <label class="field">
           <span>邮箱</span>
           <input
@@ -36,50 +26,102 @@ import Layout from "../layouts/Layout.astro";
             type="password"
             name="password"
             required
-            placeholder="至少 8 位"
+            placeholder="输入你的密码"
           />
         </label>
 
-        <button type="submit" class="submit-btn">立即注册</button>
+        <button type="submit" class="submit-btn">立即登录</button>
       </form>
 
       <p id="message" class="message"></p>
+
+      <p class="footer-link">
+        还没有账号？ <a href="/">去注册</a>
+      </p>
     </section>
   </main>
 </Layout>
 
 <script>
-  import { signUp } from "@lib/auth-client";
+  // 确保从你的 auth-client 配置文件导入 authClient 实例
+  import { authClient } from "@lib/auth-client";
 
-  const form = document.getElementById("register-form") as HTMLFormElement;
+  const form = document.getElementById("login-form") as HTMLFormElement;
   const message = document.getElementById("message")!;
+  const submitBtn = form?.querySelector(".submit-btn") as HTMLButtonElement;
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const formData = new FormData(form);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const name = formData.get("name") as string;
 
-    const { error } = await signUp.email({
-      email,
-      password,
-      name,
-      callbackURL: "/dashboard",
-    });
+    // 1. UI 状态反馈
+    message.textContent = "";
+    message.className = "message";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "正在运功..."; // 契合武侠风格
+    }
 
-    if (error) {
-      message.textContent = `错误: ${error.message}`;
+    // 2. 发起登录请求
+    try {
+      const { error } = await authClient.signIn.email({
+        email,
+        password,
+        callbackURL: "/dashboard",
+        fetchOptions: {
+          throw: false,
+          onError(ctx) {
+            // 这里可以通过 ctx.error 拿到详细错误
+            console.log("登录失败:", ctx.error);
+          },
+        },
+      });
+
+      // 3. 处理响应
+      if (error) {
+        if (
+          error.status === 401 ||
+          error.code === "INVALID_EMAIL_OR_PASSWORD"
+        ) {
+          message.textContent = "登录失败: 邮箱或密码错误";
+        } else {
+          message.textContent = `登录失败: ${error.message || "系统开小差了"}`;
+        }
+        message.className = "message error";
+
+        // 恢复按钮
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "立即登录";
+        }
+      } else {
+        // 登录成功
+        message.textContent = "登录成功！正在进入江湖...";
+        message.className = "message success";
+
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 1000);
+      }
+    } catch (err) {
+      // 捕获 fetch failed 等底层网络异常
+      console.error("请求异常:", err);
+      message.textContent = "登录失败: 邮箱或密码错误";
       message.className = "message error";
-    } else {
-      message.textContent = "注册成功！正在跳转...";
-      message.className = "message success";
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "立即登录";
+      }
     }
   });
 </script>
 
 <style>
-  .register-page {
+  .login-page {
     min-height: 100vh;
     display: grid;
     place-items: center;
@@ -98,10 +140,10 @@ import Layout from "../layouts/Layout.astro";
       linear-gradient(160deg, #0b1220 0%, #101b32 45%, #0f172a 100%);
   }
 
-  .register-card {
-    width: min(100%, 460px);
+  .login-card {
+    width: min(100%, 420px);
     border-radius: 20px;
-    padding: 28px;
+    padding: 32px 28px;
     color: #e2e8f0;
     border: 1px solid rgba(148, 163, 184, 0.35);
     background: rgba(15, 23, 42, 0.72);
@@ -114,6 +156,7 @@ import Layout from "../layouts/Layout.astro";
     font-size: 12px;
     letter-spacing: 0.24em;
     color: #93c5fd;
+    text-align: center;
   }
 
   h1 {
@@ -121,16 +164,18 @@ import Layout from "../layouts/Layout.astro";
     font-size: 34px;
     line-height: 1.15;
     color: #f8fafc;
+    text-align: center;
   }
 
   .subtitle {
-    margin: 0 0 18px;
+    margin: 0 0 24px;
     color: #cbd5e1;
+    text-align: center;
   }
 
-  .register-form {
+  .login-form {
     display: grid;
-    gap: 14px;
+    gap: 16px;
   }
 
   .field {
@@ -165,7 +210,7 @@ import Layout from "../layouts/Layout.astro";
   }
 
   .submit-btn {
-    margin-top: 4px;
+    margin-top: 8px;
     border: 0;
     border-radius: 12px;
     padding: 12px;
@@ -198,5 +243,22 @@ import Layout from "../layouts/Layout.astro";
 
   .message.success {
     color: #86efac;
+  }
+
+  .footer-link {
+    margin: 20px 0 0;
+    text-align: center;
+    font-size: 14px;
+    color: #94a3b8;
+  }
+
+  .footer-link a {
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .footer-link a:hover {
+    text-decoration: underline;
   }
 </style>
