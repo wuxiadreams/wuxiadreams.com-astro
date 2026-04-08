@@ -4,8 +4,10 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "@db/schema";
 
+const db = drizzle(env.DB, { schema });
+
 export const auth = betterAuth({
-  database: drizzleAdapter(drizzle(env.DB, { schema }), { provider: "sqlite" }),
+  database: drizzleAdapter(db, { provider: "sqlite" }),
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   account: {
