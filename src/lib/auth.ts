@@ -10,6 +10,11 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "sqlite" }),
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  accountlink: { enabled: true },
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "github"],
+    },
+  },
   emailAndPassword: { enabled: true },
 });
