@@ -10,6 +10,11 @@
   "observability": {
     "enabled": true,
   },
+  "vars": {
+    "BETTER_AUTH_URL": "https://astro.wuxiadreams.workers.dev",
+    "GOOGLE_CLIENT_ID": "",
+    "GITHUB_CLIENT_ID": "",
+  },
   "d1_databases": [
     {
       "binding": "DB",
