@@ -8,6 +8,17 @@ const db = drizzle(env.DB, { schema });
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "sqlite" }),
+  password: {
+    // 临时降低密码哈希成本，仅用于开发环境
+    hash: {
+      algorithm: "argon2",
+      options: {
+        memoryCost: 1024 * 16,
+        iterations: 1,
+        parallelism: 1,
+      },
+    },
+  },
   advanced: {
     database: {
       generateId: () => crypto.randomUUID(),
