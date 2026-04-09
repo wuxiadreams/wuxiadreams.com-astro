@@ -1,5 +1,5 @@
 ---
-import Layout from "@layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
 ---
 
 <Layout title="登录 - Wuxia Dreams">
@@ -44,7 +44,7 @@ import Layout from "@layouts/Layout.astro";
 
 <script>
   // 确保从你的 auth-client 配置文件导入 authClient 实例
-  import { authClient } from "@lib/auth-client";
+  import { authClient } from "@/lib/auth-client";
 
   const form = document.getElementById("login-form") as HTMLFormElement;
   const message = document.getElementById("message")!;

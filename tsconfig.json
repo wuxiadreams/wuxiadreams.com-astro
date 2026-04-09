@@ -1,5 +1,5 @@
 {
-  "extends": "astro/tsconfigs/strict",
+  "extends": "astro/tsconfigs/base",
   "include": [".astro/types.d.ts", "**/*", "./worker-configuration.d.ts"],
   "exclude": ["dist"],
   "compilerOptions": {
@@ -7,11 +7,12 @@
     "jsxImportSource": "react",
     "types": ["@cloudflare/workers-types"],
     "paths": {
-      "@layouts/*": ["./src/layouts/*"],
-      "@admin/*": ["./src/admin/*"],
-      "@components/*": ["./src/components/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@db/*": ["./db/*"]
+      "@/layouts/*": ["./src/layouts/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/db/*": ["./db/*"]
     }
   }
 }

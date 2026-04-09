@@ -1,12 +1,12 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
 ---
 
 <Layout title="注册 - Wuxia Dreams">
   <main class="register-page">
     <section class="register-card">
       <p class="eyebrow">WUXIA DREAMS</p>
-      <h1>创建账号</h1>
+      <h1 class="text-red-500">创建账号</h1>
       <p class="subtitle">踏入江湖前，先创建你的身份。</p>
 
       <form id="register-form" class="register-form">
@@ -49,7 +49,7 @@ import Layout from "../layouts/Layout.astro";
 </Layout>
 
 <script>
-  import { signUp } from "@lib/auth-client";
+  import { signUp } from "@/lib/auth-client";
 
   const form = document.getElementById("register-form") as HTMLFormElement;
   const message = document.getElementById("message")!;

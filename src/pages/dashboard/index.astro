@@ -1,7 +1,7 @@
 ---
 // src/pages/dashboard.astro
-import { auth } from "@lib/auth";
-import Layout from "../../layouts/Layout.astro";
+import { auth } from "@/lib/auth";
+import Layout from "@/layouts/Layout.astro";
 
 // 获取当前请求的 Session
 const session = await auth.api.getSession({
@@ -43,7 +43,7 @@ const avatarUrl =
 </Layout>
 
 <script>
-  import { signOut } from "@lib/auth-client";
+  import { signOut } from "@/lib/auth-client";
 
   const logoutBtn = document.getElementById("logout-btn");
 
