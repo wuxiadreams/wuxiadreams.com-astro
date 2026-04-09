@@ -10,9 +10,11 @@
       "@/layouts/*": ["./src/layouts/*"],
       "@/pages/*": ["./src/pages/*"],
       "@/components/*": ["./src/components/*"],
-      "@/styles/*": ["./src/styles/*"],
+      "@/hooks/*": ["./src/hooks/*"],
       "@/lib/*": ["./src/lib/*"],
-      "@/db/*": ["./db/*"]
+      "@/styles/*": ["./src/styles/*"],
+      "@/db/*": ["./db/*"],
+      "@/types/*": ["./src/types/*"]
     }
   }
 }

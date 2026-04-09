@@ -1,0 +1,185 @@
+---
+import { AuthDialog } from "./auth-dialog";
+
+const { currentPath = "/" } = Astro.props;
+
+const navItems = [
+  { href: "/novels", label: "Browse" },
+  { href: "/ranking", label: "Rankings" },
+  { href: "/authors", label: "Authors" },
+  { href: "/library", label: "Library" },
+];
+
+const isActive = (href: string) => {
+  if (href === "/") return currentPath === "/";
+  return currentPath.startsWith(href);
+};
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur"
+>
+  <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
+    <a href="/" class="group flex items-center gap-3">
+      <img
+        src="/logo.png"
+        alt="Wuxia Dreams"
+        width="32"
+        height="32"
+        class="h-8 w-8 rounded-md ring-1 ring-border/70"
+        loading="eager"
+      />
+      <div class="leading-tight">
+        <div class="text-sm font-semibold tracking-tight text-foreground">
+          Wuxia Dreams
+        </div>
+        <div class="text-[11px] tracking-[0.22em] text-muted-foreground">
+          WUXIA · FANTASY · CULTIVATION
+        </div>
+      </div>
+    </a>
+
+    <nav class="ml-6 hidden items-center gap-1 md:flex">
+      {
+        navItems.map((item) => (
+          <a
+            href={item.href}
+            aria-current={isActive(item.href) ? "page" : undefined}
+            class:list={[
+              "rounded-lg px-3 py-2 text-sm font-medium transition",
+              isActive(item.href)
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+            ]}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="ml-auto flex items-center gap-2">
+      <form action="/novels" method="get" class="hidden lg:block">
+        <label class="group relative block">
+          <input
+            name="q"
+            placeholder="Search titles / authors / tags"
+            class="h-10 w-[22rem] rounded-xl border border-input bg-background/60 px-3 pr-10 text-sm text-foreground shadow-sm transition placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          />
+          <div
+            class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
+          >
+            ⌘K
+          </div>
+        </label>
+      </form>
+
+      <button
+        type="button"
+        data-theme-toggle
+        class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-background/60 text-foreground shadow-sm transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        aria-label="Toggle theme"
+      >
+        <span class="sr-only">Toggle theme</span>
+        <svg
+          class="h-4 w-4 text-muted-foreground dark:hidden"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+        </svg>
+        <svg
+          class="hidden h-4 w-4 text-muted-foreground dark:block"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path>
+          <path d="M12 20v2"></path>
+          <path d="M4.93 4.93l1.41 1.41"></path>
+          <path d="M17.66 17.66l1.41 1.41"></path>
+          <path d="M2 12h2"></path>
+          <path d="M20 12h2"></path>
+          <path d="M6.34 17.66l-1.41 1.41"></path>
+          <path d="M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+      </button>
+
+      <AuthDialog client:load />
+
+      <details class="relative md:hidden">
+        <summary
+          class="inline-flex h-10 cursor-pointer list-none items-center justify-center rounded-xl border border-border/60 bg-background/60 px-3 text-sm font-medium text-foreground shadow-sm"
+        >
+          Menu
+        </summary>
+        <div
+          class="absolute right-0 mt-2 w-[min(92vw,320px)] rounded-2xl border border-border/70 bg-background/95 p-2 shadow-xl"
+        >
+          <div class="p-2">
+            <form action="/novels" method="get">
+              <input
+                name="q"
+                placeholder="Search titles / authors"
+                class="h-10 w-full rounded-xl border border-input bg-background/60 px-3 text-sm text-foreground shadow-sm placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              />
+            </form>
+          </div>
+          <div class="grid gap-1 p-2">
+            {
+              navItems.map((item) => (
+                <a
+                  href={item.href}
+                  class:list={[
+                    "rounded-xl px-3 py-2 text-sm font-medium",
+                    isActive(item.href)
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              ))
+            }
+            <a
+              href="/auth/signin"
+              class="mt-1 inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            >
+              Sign in
+            </a>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script is:inline>
+  (() => {
+    const buttons = document.querySelectorAll("[data-theme-toggle]");
+    if (!buttons.length) return;
+
+    const root = document.documentElement;
+
+    for (const btn of buttons) {
+      btn.addEventListener("click", () => {
+        const nextIsDark = root.classList.toggle("dark");
+        const next = nextIsDark ? "dark" : "light";
+        root.style.colorScheme = next;
+        try {
+          localStorage.setItem("theme", next);
+        } catch {}
+      });
+    }
+  })();
+</script>

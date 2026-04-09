@@ -1,9 +1,10 @@
 ---
-import Header from "@/components/header.astro";
-import Footer from "@/components/footer.astro";
+import AdminSidebarContainer from "@/components/admin-sidebar-container";
 import "@/styles/global.css";
 
-const { title = "Wuxia Dreams" } = Astro.props;
+const { title = "Admin — Wuxia Dreams" } = Astro.props;
+const pathname = Astro.url.pathname;
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -45,10 +46,8 @@ const { title = "Wuxia Dreams" } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
-    <div class="min-h-dvh bg-background text-foreground">
-      <Header />
+    <AdminSidebarContainer client:load currentPath={pathname} user={user}>
       <slot />
-      <Footer />
-    </div>
+    </AdminSidebarContainer>
   </body>
 </html>

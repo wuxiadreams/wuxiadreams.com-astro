@@ -1,0 +1,103 @@
+---
+const year = new Date().getFullYear();
+const columns = [
+  {
+    title: "Explore",
+    links: [
+      { href: "/novels", label: "Library" },
+      { href: "/rank", label: "Rankings" },
+      { href: "/authors", label: "Authors" },
+      { href: "/tags", label: "Tags" },
+    ],
+  },
+  {
+    title: "Guides",
+    links: [
+      { href: "/about", label: "About" },
+      { href: "/rules", label: "Community rules" },
+      { href: "/feedback", label: "Feedback" },
+      { href: "/status", label: "Status" },
+    ],
+  },
+];
+---
+
+<footer class="border-t border-border/60 bg-background">
+  <div class="mx-auto max-w-6xl px-4 py-12">
+    <div class="grid gap-10 md:grid-cols-[1.2fr_2fr]">
+      <div>
+        <div class="flex items-center gap-3">
+          <img
+            src="/logo.png"
+            alt="Wuxia Dreams"
+            width="36"
+            height="36"
+            class="h-9 w-9 rounded-md ring-1 ring-border/70"
+            loading="lazy"
+          />
+          <div>
+            <div class="text-base font-semibold tracking-tight">
+              Wuxia Dreams
+            </div>
+            <div class="text-xs tracking-[0.22em] text-muted-foreground">
+              READ · TRACK · DISCOVER
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          A focused fiction hub built for discovery and tracking. Find your next
+          read fast, then keep your progress under control.
+        </p>
+
+        <div class="mt-6 flex flex-wrap gap-2">
+          <a
+            href="/auth/signin"
+            class="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+          >
+            Sign in / Start tracking
+          </a>
+          <a
+            href="/novels"
+            class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted"
+          >
+            Browse library
+          </a>
+        </div>
+      </div>
+
+      <div class="grid gap-8 sm:grid-cols-3">
+        {
+          columns.map((col) => (
+            <div>
+              <div class="text-sm font-semibold text-foreground">
+                {col.title}
+              </div>
+              <div class="mt-3 grid gap-2">
+                {col.links.map((link) => (
+                  <a
+                    href={link.href}
+                    class="text-sm text-muted-foreground transition hover:text-foreground"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div
+      class="mt-10 flex flex-col gap-3 border-t border-border/60 pt-6 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between"
+    >
+      <div>© {year} Wuxia Dreams. All rights reserved.</div>
+      <div class="flex flex-wrap gap-x-4 gap-y-2">
+        <a href="/privacy" class="hover:text-foreground">Privacy</a>
+        <a href="/terms" class="hover:text-foreground">Terms</a>
+        <a href="/changelog" class="hover:text-foreground">Changelog</a>
+      </div>
+    </div>
+  </div>
+</footer>

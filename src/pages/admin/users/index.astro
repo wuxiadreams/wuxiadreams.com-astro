@@ -1,0 +1,24 @@
+---
+import { env } from "cloudflare:workers";
+import { drizzle } from "drizzle-orm/d1";
+import AdminLayout from "@/layouts/admin-layout.astro";
+import UserTable from "./_table";
+import * as schema from "@/db/schema";
+
+const db = drizzle(env.DB, { schema });
+const users = await db.query.user.findMany({
+  orderBy: (user, { desc }) => [desc(user.createdAt)],
+});
+console.log("=======users=========", users);
+---
+
+<AdminLayout title="用户管理">
+  <div class="flex flex-col gap-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">用户管理</h1>
+      <p class="text-muted-foreground">管理平台的所有注册用户</p>
+    </div>
+
+    <UserTable client:load initialUsers={users} />
+  </div>
+</AdminLayout>
