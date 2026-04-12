@@ -1,6 +1,10 @@
-"use client";
-import { useState, useMemo } from "react";
-import type { User } from "@/types/user";
+import { useState } from "react";
+import { useStore } from "@nanostores/react";
+import { RefreshCcw } from "lucide-react";
+import { useDebounce } from "use-debounce";
+import { useQuery } from "@tanstack/react-query";
+import { reactQueryClient } from "@/stores/query";
+import type { UserListResponse } from "@/pages/api/users";
 import {
   Table,
   TableBody,
@@ -11,36 +15,39 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Spinner } from "@/components/ui/spinner";
 
-interface UserTableProps {
-  initialUsers: User[];
-}
-
-export default function UserTable({ initialUsers }: UserTableProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function UserTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const params = {
+    page: String(currentPage),
+    pageSize: String(pageSize),
+    search: debouncedSearchQuery,
+  };
+  const queryString = new URLSearchParams(params).toString();
+  const queryClient = useStore(reactQueryClient);
+  const { data, isFetching } = useQuery(
+    {
+      queryKey: ["users", params],
+      queryFn: async (): Promise<UserListResponse> => {
+        const res = await fetch(`/api/users?${queryString}`);
+        return res.json();
+      },
+    },
+    queryClient,
+  );
 
-  const filteredUsers = useMemo(() => {
-    return initialUsers.filter((user) => {
-      const query = searchQuery.toLowerCase();
-      return (
-        user.name.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query)
-      );
-    });
-  }, [initialUsers, searchQuery]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
-
-  const paginatedUsers = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return filteredUsers.slice(startIndex, startIndex + pageSize);
-  }, [filteredUsers, currentPage, pageSize]);
+  const users = data?.items || [];
+  const meta = data?.meta || { total: 0, totalPages: 0 };
+  const { total, totalPages } = meta;
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const formatDate = (date: number | Date) => {
@@ -49,6 +56,10 @@ export default function UserTable({ initialUsers }: UserTableProps) {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["users"] });
   };
 
   return (
@@ -60,9 +71,20 @@ export default function UserTable({ initialUsers }: UserTableProps) {
           onChange={handleSearch}
           className="max-w-sm"
         />
+
+        <RefreshCcw
+          size="16"
+          className="cursor-pointer hover:text-primary"
+          onClick={handleRefresh}
+        />
       </div>
 
-      <div className="rounded-md border">
+      <div className="relative rounded-md border">
+        {isFetching && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+            <Spinner />
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -74,16 +96,17 @@ export default function UserTable({ initialUsers }: UserTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedUsers.length > 0 ? (
-              paginatedUsers.map((user) => (
+            {users.length > 0 ? (
+              users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     {user.image ? (
-                      <img
-                        src={user.image}
-                        alt={user.name}
-                        className="h-8 w-8 rounded-full"
-                      />
+                      <Avatar>
+                        <AvatarImage src={user.image} alt={user.name} />
+                        <AvatarFallback>
+                          {user.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                     ) : (
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
                         {user.name.charAt(0).toUpperCase()}
@@ -109,7 +132,7 @@ export default function UserTable({ initialUsers }: UserTableProps) {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                  未找到用户。
+                  {isFetching ? "" : "暂无数据"}
                 </TableCell>
               </TableRow>
             )}
@@ -120,8 +143,7 @@ export default function UserTable({ initialUsers }: UserTableProps) {
       <div className="flex items-center justify-between px-2">
         <div className="text-sm text-muted-foreground">
           显示第 {(currentPage - 1) * pageSize + 1} 到{" "}
-          {Math.min(currentPage * pageSize, filteredUsers.length)} 条记录，共{" "}
-          {filteredUsers.length} 条记录
+          {Math.min(currentPage * pageSize, total)} 条记录，共 {total} 条记录
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -138,8 +160,8 @@ export default function UserTable({ initialUsers }: UserTableProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(2, p + 1))}
+            disabled={currentPage === 2}
           >
             下一页
           </Button>

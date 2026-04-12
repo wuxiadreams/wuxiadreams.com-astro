@@ -1,0 +1,1 @@
+ALTER TABLE `chapter` ADD `number` real NOT NULL;

@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/layout.astro";
+import { AuthDialog } from "@/components/auth-dialog";
 
 const featured = [
   {
@@ -64,6 +65,8 @@ const quickTags = [
   "Isekai",
   "System",
 ];
+
+const user = Astro.locals.user;
 ---
 
 <Layout title="Wuxia Dreams — Discover and Track Novels">
@@ -124,7 +127,7 @@ const quickTags = [
               href="/novels"
               class="inline-flex h-12 items-center justify-center rounded-2xl border border-border/70 bg-background/60 px-5 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted"
             >
-              Browse library
+              Browse novels
             </a>
           </div>
 
@@ -192,7 +195,7 @@ const quickTags = [
           </ol>
 
           <a
-            href="/rank"
+            href="/rankings"
             class="mt-5 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             View full rankings
@@ -221,7 +224,7 @@ const quickTags = [
         {
           featured.map((book) => (
             <a
-              href={`/novels/${encodeURIComponent(book.title)}`}
+              href={`/novel/${encodeURIComponent(book.title)}`}
               class="group relative overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <div class="absolute inset-0">
@@ -274,7 +277,7 @@ const quickTags = [
             {
               latestUpdates.map((item) => (
                 <a
-                  href={`/novels/${encodeURIComponent(item.title)}`}
+                  href={`/novels`}
                   class="group flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/40 p-4 shadow-sm transition hover:bg-muted/60"
                 >
                   <div class="min-w-0">
@@ -311,7 +314,7 @@ const quickTags = [
             {
               quickTags.map((tag) => (
                 <a
-                  href={`/tags/${encodeURIComponent(tag)}`}
+                  href={`/tag/${encodeURIComponent(tag.toLowerCase())}`}
                   class="rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 >
                   {tag}
@@ -325,15 +328,30 @@ const quickTags = [
           >
             <div class="text-sm font-semibold">Library sync</div>
             <div class="mt-1 text-xs text-muted-foreground">
-              Sign in to track updates, save novels, and record reading
-              progress.
+              {
+                user
+                  ? "Your library is up to date. Keep reading where you left off."
+                  : "Sign in to track updates, save novels, and record reading progress."
+              }
             </div>
-            <a
-              href="/auth/signin"
-              class="mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-            >
-              Sign in now
-            </a>
+            <div class="mt-4">
+              {
+                user ? (
+                  <a
+                    href="/library"
+                    class="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  >
+                    Go to my library
+                  </a>
+                ) : (
+                  <AuthDialog
+                    client:load
+                    triggerText="Sign in now"
+                    triggerClassName="inline-flex cursor-pointer h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  />
+                )
+              }
+            </div>
           </div>
         </aside>
       </div>

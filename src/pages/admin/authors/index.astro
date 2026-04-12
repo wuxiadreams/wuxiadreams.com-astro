@@ -1,7 +1,15 @@
 ---
 import AdminLayout from "@/layouts/admin-layout.astro";
+import AuthorTable from "./_table";
 ---
 
 <AdminLayout title="作者管理">
-  <h1>作者管理</h1>
+  <div class="flex flex-col gap-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">作者管理</h1>
+      <p class="text-muted-foreground">管理平台的所有小说作者</p>
+    </div>
+
+    <AuthorTable client:load />
+  </div>
 </AdminLayout>

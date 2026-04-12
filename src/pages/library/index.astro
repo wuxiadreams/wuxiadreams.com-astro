@@ -25,6 +25,8 @@ const userLibrary = await db
   .innerJoin(schema.novel, eq(schema.userLibrary.novelId, schema.novel.id))
   .where(eq(schema.userLibrary.userId, user.id))
   .orderBy(desc(schema.userLibrary.createdAt));
+
+const r2Domain = env.R2_DOMAIN;
 ---
 
 <Layout title="My Library — Wuxia Dreams">
@@ -41,13 +43,13 @@ const userLibrary = await db
         <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {userLibrary.map(({ novel }) => (
             <a
-              href={`/novels/${novel.slug}`}
+              href={`/novel/${novel.slug}`}
               class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
               <div class="aspect-[2/3] w-full overflow-hidden bg-muted">
                 {novel.cover ? (
                   <img
-                    src={novel.cover}
+                    src={`https://${r2Domain}/${novel.cover}`}
                     alt={novel.title}
                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     loading="lazy"

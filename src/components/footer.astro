@@ -1,11 +1,14 @@
 ---
+import { AuthDialog } from "@/components/auth-dialog";
+
+const user = Astro.locals.user;
 const year = new Date().getFullYear();
 const columns = [
   {
     title: "Explore",
     links: [
-      { href: "/novels", label: "Library" },
-      { href: "/rank", label: "Rankings" },
+      { href: "/novels", label: "Novels" },
+      { href: "/rankings", label: "Rankings" },
       { href: "/authors", label: "Authors" },
       { href: "/tags", label: "Tags" },
     ],
@@ -16,7 +19,6 @@ const columns = [
       { href: "/about", label: "About" },
       { href: "/rules", label: "Community rules" },
       { href: "/feedback", label: "Feedback" },
-      { href: "/status", label: "Status" },
     ],
   },
 ];
@@ -51,17 +53,27 @@ const columns = [
         </p>
 
         <div class="mt-6 flex flex-wrap gap-2">
-          <a
-            href="/auth/signin"
-            class="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
-          >
-            Sign in / Start tracking
-          </a>
+          {
+            user ? (
+              <a
+                href="/library"
+                class="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+              >
+                Go to my library
+              </a>
+            ) : (
+              <AuthDialog
+                client:load
+                triggerText="Sign in / Start tracking"
+                triggerClassName="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+              />
+            )
+          }
           <a
             href="/novels"
             class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted"
           >
-            Browse library
+            Browse novels
           </a>
         </div>
       </div>

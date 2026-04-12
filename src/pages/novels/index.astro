@@ -2,7 +2,7 @@
 import Layout from "@/layouts/layout.astro";
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
-import { like, count, desc, or } from "drizzle-orm";
+import { like, count, desc, or, eq, and } from "drizzle-orm";
 import * as schema from "@/db/schema";
 
 const db = drizzle(env.DB, { schema });
@@ -10,15 +10,17 @@ const db = drizzle(env.DB, { schema });
 const url = new URL(Astro.request.url);
 const currentPage = parseInt(url.searchParams.get("page") || "1");
 const searchQuery = url.searchParams.get("q") || "";
-const pageSize = 12;
+const pageSize = 20;
 
-let whereClause = undefined;
+let searchClause = undefined;
 if (searchQuery) {
-  whereClause = or(
+  searchClause = or(
     like(schema.novel.title, `%${searchQuery}%`),
     like(schema.novel.titleAlt, `%${searchQuery}%`),
   );
 }
+
+const whereClause = and(eq(schema.novel.published, true), searchClause);
 
 const [{ value: totalNovels }] = await db
   .select({ value: count() })
@@ -40,6 +42,9 @@ const getPageUrl = (page: number) => {
   newUrl.searchParams.set("page", page.toString());
   return newUrl.pathname + newUrl.search;
 };
+
+// R2
+const r2Domain = env.R2_DOMAIN;
 ---
 
 <Layout title="Browse Novels — Wuxia Dreams">
@@ -92,16 +97,16 @@ const getPageUrl = (page: number) => {
 
     {
       novels.length > 0 ? (
-        <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div class="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {novels.map((novel) => (
             <a
-              href={`/novels/${novel.slug}`}
+              href={`/novel/${novel.slug}`}
               class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
               <div class="aspect-[2/3] w-full overflow-hidden bg-muted">
                 {novel.cover ? (
                   <img
-                    src={novel.cover}
+                    src={`https://${r2Domain}/${novel.cover}`}
                     alt={novel.title}
                     class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     loading="lazy"

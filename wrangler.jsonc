@@ -12,8 +12,10 @@
   },
   "vars": {
     "BETTER_AUTH_URL": "https://astro.wuxiadreams.workers.dev",
-    "GOOGLE_CLIENT_ID": "",
-    "GITHUB_CLIENT_ID": "",
+    "R2_DOMAIN": "cdn.wuxiadreams.com",
+    "R2_REGION": "auto",
+    "R2_NOVELS_BUCKET": "novels",
+    "R2_ASSETS_BUCKET": "novel-assets",
   },
   "d1_databases": [
     {

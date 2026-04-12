@@ -12,6 +12,9 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     server: {
+      watch: {
+        ignored: ["**/.wrangler/**", "**/node_modules/**", "**/.astro/**"],
+      },
       hmr: {
         overlay: false,
       },

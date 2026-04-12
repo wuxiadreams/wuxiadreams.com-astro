@@ -1,0 +1,577 @@
+---
+import { env } from "cloudflare:workers";
+import Layout from "@/layouts/layout.astro";
+import { db } from "@/lib/db";
+import {
+  novel,
+  novelAuthor,
+  author,
+  novelCategory,
+  category,
+  novelTag,
+  tag,
+  chapter,
+} from "@/db/schema";
+import { eq, asc, and, count, desc } from "drizzle-orm";
+
+const { slug } = Astro.params;
+const url = new URL(Astro.request.url);
+const currentPage = parseInt(url.searchParams.get("page") || "1");
+const pageSize = 100;
+const r2Domain = env.R2_DOMAIN;
+
+if (!slug) {
+  return Astro.redirect("/novels");
+}
+
+// 1. 获取小说基本信息
+const novelData = await db
+  .select()
+  .from(novel)
+  .where(and(eq(novel.slug, slug), eq(novel.published, true)))
+  .get();
+
+if (!novelData) {
+  return Astro.redirect("/novels");
+}
+
+// 2. 并行获取关联数据 (作者, 分类, 标签, 章节总数, 章节数据)
+const [
+  authorsData,
+  categoriesData,
+  tagsData,
+  [{ totalChapters }],
+  chaptersData,
+] = await Promise.all([
+  db
+    .select({
+      id: author.id,
+      name: author.name,
+      slug: author.slug,
+    })
+    .from(novelAuthor)
+    .innerJoin(author, eq(novelAuthor.authorId, author.id))
+    .where(eq(novelAuthor.novelId, novelData.id)),
+
+  db
+    .select({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+    })
+    .from(novelCategory)
+    .innerJoin(category, eq(novelCategory.categoryId, category.id))
+    .where(eq(novelCategory.novelId, novelData.id)),
+
+  db
+    .select({
+      id: tag.id,
+      name: tag.name,
+      slug: tag.slug,
+    })
+    .from(novelTag)
+    .innerJoin(tag, eq(novelTag.tagId, tag.id))
+    .where(eq(novelTag.novelId, novelData.id)),
+
+  db
+    .select({ totalChapters: count() })
+    .from(chapter)
+    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true))),
+
+  db
+    .select({
+      id: chapter.id,
+      title: chapter.title,
+      number: chapter.number,
+      createdAt: chapter.createdAt,
+    })
+    .from(chapter)
+    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)))
+    .orderBy(asc(chapter.number))
+    .limit(pageSize)
+    .offset((currentPage - 1) * pageSize),
+]);
+
+// 3. 获取作者相关的其他小说 (最多6本)
+let authorOtherNovels: any[] = [];
+if (authorsData.length > 0) {
+  authorOtherNovels = await db
+    .select({
+      slug: novel.slug,
+      title: novel.title,
+      cover: novel.cover,
+      score: novel.score,
+      status: novel.status,
+      chapterCount: count(chapter.id),
+    })
+    .from(novelAuthor)
+    .innerJoin(novel, eq(novelAuthor.novelId, novel.id))
+    .leftJoin(chapter, eq(novel.id, chapter.novelId))
+    .where(
+      and(
+        eq(novelAuthor.authorId, authorsData[0].id),
+        eq(novel.published, true),
+      ),
+    )
+    .groupBy(novel.id)
+    .orderBy(desc(novel.views))
+    .limit(7); // Fetch 7 to ensure we can show 6 *other* novels
+
+  // Filter out the current novel
+  authorOtherNovels = authorOtherNovels
+    .filter((n) => n.slug !== novelData.slug)
+    .slice(0, 6);
+}
+
+const totalPages = Math.max(1, Math.ceil(totalChapters / pageSize));
+
+// Generate pagination links
+const getPageUrl = (page: number) => {
+  const newUrl = new URL(url);
+  newUrl.searchParams.set("page", page.toString());
+  return newUrl.pathname + newUrl.search;
+};
+
+// 格式化日期
+const formatDate = (date: Date | number | string) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(d);
+};
+
+const r2_domain = env.R2_DOMAIN;
+---
+
+<Layout
+  title={`${novelData.seoTitle || novelData.title} | Wuxia Dreams`}
+  description={novelData.seoDescription ||
+    novelData.synopsis?.slice(0, 150) ||
+    ""}
+>
+  <main class="container mx-auto max-w-6xl px-4 py-8 sm:py-12">
+    {/* 顶部面包屑 */}
+    <nav class="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
+      <a href="/" class="shrink-0 hover:text-foreground transition-colors"
+        >Home</a
+      >
+      <span class="shrink-0">/</span>
+      <a href="/novels" class="shrink-0 hover:text-foreground transition-colors"
+        >Novels</a
+      >
+      <span class="shrink-0">/</span>
+      <span class="text-foreground truncate min-w-0">{novelData.title}</span>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row gap-12">
+      {/* 左侧主要内容区 */}
+      <div class="flex flex-1 min-w-0 flex-col gap-10">
+        {/* 头部信息区 (移动端竖排，PC端横排) */}
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+          {/* 封面 */}
+          <div
+            class="mx-auto w-48 shrink-0 overflow-hidden rounded-xl border border-border/50 bg-muted shadow-md sm:mx-0 sm:w-56 lg:w-64"
+          >
+            <div class="aspect-2/3 w-full">
+              {
+                novelData.cover ? (
+                  <img
+                    src={`https://${r2_domain}/${novelData.cover}`}
+                    alt={novelData.title}
+                    class="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="flex h-full w-full items-center justify-center text-muted-foreground">
+                    No cover
+                  </div>
+                )
+              }
+            </div>
+          </div>
+
+          {/* 信息文本 */}
+          <div class="flex flex-1 flex-col">
+            <h1
+              class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+            >
+              {novelData.title}
+            </h1>
+
+            {
+              novelData.titleAlt && (
+                <h2 class="mt-2 text-lg text-muted-foreground">
+                  {novelData.titleAlt}
+                </h2>
+              )
+            }
+
+            {/* 作者信息 */}
+            <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              <span class="font-medium text-foreground">Author:</span>
+              {
+                authorsData.length > 0 ? (
+                  authorsData.map((a, idx) => (
+                    <>
+                      <a
+                        href={`/author/${a.slug}`}
+                        class="text-primary hover:underline"
+                      >
+                        {a.name}
+                      </a>
+                      {idx < authorsData.length - 1 && (
+                        <span class="text-muted-foreground">,</span>
+                      )}
+                    </>
+                  ))
+                ) : (
+                  <span class="text-muted-foreground">Unknown</span>
+                )
+              }
+            </div>
+
+            {/* 数据统计区 */}
+            <div
+              class="mt-6 grid grid-cols-2 gap-4 rounded-2xl border border-border/60 bg-muted/30 p-4 sm:grid-cols-4"
+            >
+              <div class="flex flex-col">
+                <span class="text-xs text-muted-foreground">Chapters</span>
+                <span class="mt-1 font-semibold text-foreground"
+                  >{novelData.chapterCount}</span
+                >
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-muted-foreground">Views</span>
+                <span class="mt-1 font-semibold text-foreground"
+                  >{novelData.views.toLocaleString()}</span
+                >
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-muted-foreground">Score</span>
+                <span
+                  class="mt-1 flex items-center gap-1 font-semibold text-foreground"
+                >
+                  <svg
+                    class="h-4 w-4 text-yellow-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                    ></path>
+                  </svg>
+                  {novelData.score.toFixed(1)}
+                </span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-xs text-muted-foreground">Status</span>
+                <span class="mt-1 font-semibold text-foreground capitalize"
+                  >{novelData.status}</span
+                >
+              </div>
+            </div>
+
+            {/* 操作按钮区 */}
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button
+                class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              >
+                Start Reading
+              </button>
+              <button
+                class="inline-flex h-11 items-center justify-center rounded-xl border border-border/70 bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted"
+              >
+                <svg
+                  class="mr-2 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                  ></path>
+                </svg>
+                Add to Library
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 简介区 */}
+        <section class="scroll-mt-24">
+          <h3 class="mb-4 text-xl font-bold text-foreground">Synopsis</h3>
+          <div
+            class="prose prose-sm sm:prose-base prose-neutral dark:prose-invert max-w-none text-muted-foreground"
+          >
+            {
+              novelData.synopsis ? (
+                <div set:html={novelData.synopsis.replace(/\n/g, "<br/>")} />
+              ) : (
+                <p class="italic text-muted-foreground/70">
+                  No synopsis available.
+                </p>
+              )
+            }
+          </div>
+        </section>
+
+        {/* 章节列表区 */}
+        <section class="scroll-mt-24">
+          <div class="mb-6 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-foreground">Chapters</h3>
+            <span class="text-sm text-muted-foreground"
+              >{chaptersData.length} Chapters</span
+            >
+          </div>
+
+          {
+            chaptersData.length > 0 ? (
+              <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {chaptersData.map((chapter) => (
+                  <a
+                    href={`/novel/${novelData.slug}/chapter-${chapter.number}`}
+                    class="group flex flex-col justify-between rounded-xl border border-border/50 bg-card p-4 transition hover:border-primary/50 hover:bg-muted/30"
+                  >
+                    <span class="line-clamp-1 font-medium text-foreground group-hover:text-primary transition-colors">
+                      Chapter {chapter.number}: {chapter.title}
+                    </span>
+                    <span class="mt-2 text-xs text-muted-foreground">
+                      {formatDate(chapter.createdAt)}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/60 py-12 text-center">
+                <span class="text-muted-foreground">
+                  No chapters available yet.
+                </span>
+              </div>
+            )
+          }
+
+          {
+            totalPages > 1 && (
+              <div class="mt-8 flex items-center justify-center gap-2">
+                <a
+                  href={getPageUrl(Math.max(1, currentPage - 1))}
+                  class:list={[
+                    "inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted",
+                    currentPage === 1 && "pointer-events-none opacity-50",
+                  ]}
+                >
+                  Previous
+                </a>
+                <div class="text-sm text-muted-foreground mx-4">
+                  Page{" "}
+                  <span class="font-semibold text-foreground">
+                    {currentPage}
+                  </span>{" "}
+                  of {totalPages}
+                </div>
+                <a
+                  href={getPageUrl(Math.min(totalPages, currentPage + 1))}
+                  class:list={[
+                    "inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted",
+                    currentPage === totalPages &&
+                      "pointer-events-none opacity-50",
+                  ]}
+                >
+                  Next
+                </a>
+              </div>
+            )
+          }
+        </section>
+      </div>
+
+      {/* 右侧边栏区 */}
+      <aside class="flex flex-col gap-8 w-full sm:w-64 lg:w-80 shrink-0">
+        {/* 分类 & 标签 */}
+        <div class="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+          <h3 class="mb-4 font-semibold text-foreground">Information</h3>
+
+          <div class="flex flex-col gap-4">
+            {
+              categoriesData.length > 0 && (
+                <div>
+                  <div class="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Categories
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    {categoriesData.map((cat) => (
+                      <a
+                        href={`/genre/${cat.slug}`}
+                        class="inline-flex items-center rounded-md bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                      >
+                        {cat.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+
+            {
+              tagsData.length > 0 && (
+                <div>
+                  <div class="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Tags
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    {tagsData.map((tag) => (
+                      <a
+                        href={`/tag/${tag.slug}`}
+                        class="inline-flex items-center rounded-md border border-border/60 bg-background px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {tag.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+          </div>
+        </div>
+        {/* 外部链接 */}
+        {
+          (novelData.officialLink || novelData.translatedLink) && (
+            <div class="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+              <h3 class="mb-4 font-semibold text-foreground">External Links</h3>
+              <div class="flex flex-col gap-3">
+                {novelData.officialLink && (
+                  <a
+                    href={novelData.officialLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center text-sm text-primary hover:underline"
+                  >
+                    <svg
+                      class="mr-2 h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                    Official Raw
+                  </a>
+                )}
+                {novelData.translatedLink && (
+                  <a
+                    href={novelData.translatedLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center text-sm text-primary hover:underline"
+                  >
+                    <svg
+                      class="mr-2 h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                    Translation Source
+                  </a>
+                )}
+              </div>
+            </div>
+          )
+        }
+
+        {/* 作者其他小说 (边栏小卡片) */}
+        {
+          authorOtherNovels.length > 0 && (
+            <div class="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+              <div class="mb-4 flex items-center justify-between">
+                <h3 class="font-semibold text-foreground">
+                  More by {authorsData[0].name}
+                </h3>
+              </div>
+
+              <div class="flex flex-col gap-4">
+                {authorOtherNovels.map((n) => (
+                  <a
+                    href={`/novel/${n.slug}`}
+                    class="group flex items-start gap-3 transition-colors"
+                  >
+                    <div class="relative w-12 h-16 shrink-0 overflow-hidden rounded-md border border-border/50 bg-muted">
+                      {n.cover ? (
+                        <img
+                          src={`https://${r2Domain}/${n.cover}`}
+                          alt={n.title}
+                          class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div class="flex h-full items-center justify-center bg-muted">
+                          <svg
+                            class="h-4 w-4 text-muted-foreground/30"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="1.5"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div class="flex flex-col gap-1 py-0.5 min-w-0">
+                      <span class="line-clamp-2 text-sm font-medium leading-tight text-foreground transition-colors group-hover:text-primary">
+                        {n.title}
+                      </span>
+                      <span class="flex items-center gap-1 text-xs text-muted-foreground flex-wrap">
+                        <span class="flex items-center gap-0.5">
+                          <svg
+                            class="h-3 w-3 text-yellow-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          {n.score.toFixed(1)}
+                        </span>
+                        <span class="opacity-50">•</span>
+                        <span>{n.chapterCount} Chs</span>
+                        <span class="opacity-50">•</span>
+                        <span class="capitalize">{n.status}</span>
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <a
+                href={`/author/${authorsData[0].slug}`}
+                class="mt-4 block text-center text-sm font-medium text-primary hover:underline transition-colors"
+              >
+                View all
+              </a>
+            </div>
+          )
+        }
+      </aside>
+    </div>
+  </main>
+</Layout>

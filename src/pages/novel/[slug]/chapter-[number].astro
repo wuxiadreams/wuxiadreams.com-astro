@@ -1,0 +1,313 @@
+---
+import Layout from "@/layouts/layout.astro";
+import { db } from "@/lib/db";
+import { novel, chapter } from "@/db/schema";
+import { eq, and, lt, gt, desc, asc, count } from "drizzle-orm";
+import { actions } from "astro:actions";
+import { ChapterSettings } from "@/components/chapter-settings";
+import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
+
+const { slug, number } = Astro.params;
+const chapterNumber = Number(number);
+
+if (!slug || isNaN(chapterNumber)) {
+  return Astro.redirect("/novels");
+}
+
+// 1. 获取小说信息及章节元数据
+const novelData = await db
+  .select({
+    id: novel.id,
+    title: novel.title,
+    slug: novel.slug,
+  })
+  .from(novel)
+  .where(and(eq(novel.slug, slug), eq(novel.published, true)))
+  .get();
+
+if (!novelData) {
+  return Astro.redirect("/novels");
+}
+
+// 2. 获取当前章节
+const currentChapter = await db
+  .select()
+  .from(chapter)
+  .where(
+    and(
+      eq(chapter.novelId, novelData.id),
+      eq(chapter.number, chapterNumber),
+      eq(chapter.published, true),
+    ),
+  )
+  .get();
+
+if (!currentChapter) {
+  return Astro.redirect(`/novel/${novelData.slug}`);
+}
+
+// 3. 获取上一章和下一章 (用于导航) 以及总章节数
+const [prevChapter, nextChapter, [{ totalChapters }]] = await Promise.all([
+  db
+    .select({ number: chapter.number })
+    .from(chapter)
+    .where(
+      and(
+        eq(chapter.novelId, novelData.id),
+        lt(chapter.number, chapterNumber),
+        eq(chapter.published, true),
+      ),
+    )
+    .orderBy(desc(chapter.number))
+    .limit(1)
+    .get(),
+  db
+    .select({ number: chapter.number })
+    .from(chapter)
+    .where(
+      and(
+        eq(chapter.novelId, novelData.id),
+        gt(chapter.number, chapterNumber),
+        eq(chapter.published, true),
+      ),
+    )
+    .orderBy(asc(chapter.number))
+    .limit(1)
+    .get(),
+  db
+    .select({ totalChapters: count() })
+    .from(chapter)
+    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true))),
+]);
+
+// 4. 从 R2 获取章节内容
+let chapterContent = "";
+try {
+  const result = await Astro.callAction(actions.chapter.fetchChapterContent, {
+    fileKey: currentChapter.fileKey,
+  });
+
+  if (result.data?.data) {
+    chapterContent = result.data.data;
+  } else {
+    chapterContent = "Error loading chapter content. Please try again later.";
+    console.error(
+      `Failed to fetch chapter content from R2: ${result.data?.error || result.error?.message}`,
+    );
+  }
+} catch (error) {
+  chapterContent = "Error loading chapter content. Please try again later.";
+  console.error("Error fetching chapter content:", error);
+}
+
+// 将换行符转换为段落
+const contentParagraphs = chapterContent
+  .split("\n")
+  .filter((p) => p.trim() !== "");
+---
+
+<Layout
+  title={`Chapter ${currentChapter.number}: ${currentChapter.title} - ${novelData.title} | Wuxia Dreams`}
+  description={`Read Chapter ${currentChapter.number} of ${novelData.title} online. ${currentChapter.title}`}
+>
+  <style is:global>
+    :root {
+      --chapter-font-size: 18px;
+      --chapter-line-height: 1.8;
+      --chapter-paragraph-spacing: 1.5em;
+    }
+
+    .chapter-content-container {
+      font-size: var(--chapter-font-size);
+      line-height: var(--chapter-line-height);
+      transition:
+        font-size 0.2s ease,
+        line-height 0.2s ease;
+    }
+
+    .chapter-content-container p {
+      margin-bottom: var(--chapter-paragraph-spacing);
+      transition: margin-bottom 0.2s ease;
+    }
+
+    .chapter-content-container p:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+
+  <main class="container mx-auto max-w-4xl px-4 py-8 sm:py-12">
+    {/* 面包屑导航 */}
+    <nav class="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
+      <a href="/" class="shrink-0 hover:text-foreground transition-colors"
+        >Home</a
+      >
+      <span class="shrink-0">/</span>
+      <a href="/novels" class="shrink-0 hover:text-foreground transition-colors"
+        >Novels</a
+      >
+      <span class="shrink-0">/</span>
+      <a
+        href={`/novel/${novelData.slug}`}
+        class="shrink-0 hover:text-foreground transition-colors truncate max-w-[120px] sm:max-w-[200px]"
+        >{novelData.title}</a
+      >
+      <span class="shrink-0">/</span>
+      <span class="text-foreground truncate min-w-0"
+        >Chapter {currentChapter.number}</span
+      >
+    </nav>
+
+    {/* 章节头部 */}
+    <div class="mb-8 border-b border-border/60 pb-8 text-center">
+      <h1
+        class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl"
+      >
+        Chapter {currentChapter.number}: {currentChapter.title}
+      </h1>
+      <div
+        class="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground"
+      >
+        <span>{currentChapter.wordCount} words</span>
+      </div>
+    </div>
+
+    {/* 顶部导航控制 */}
+    <div class="mb-10 flex items-center justify-between gap-4">
+      {
+        prevChapter ? (
+          <a
+            href={`/novel/${novelData.slug}/chapter-${prevChapter.number}`}
+            class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted"
+          >
+            <svg
+              class="mr-2 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Previous
+          </a>
+        ) : (
+          <div class="h-10 px-4" />
+        )
+      }
+
+      <ChapterIndexDrawer
+        client:load
+        novelId={novelData.id}
+        novelSlug={novelData.slug}
+        novelTitle={novelData.title}
+        totalChapters={totalChapters}
+      />
+
+      <div class="flex items-center gap-2">
+        <ChapterSettings client:load />
+
+        {
+          nextChapter ? (
+            <a
+              href={`/novel/${novelData.slug}/chapter-${nextChapter.number}`}
+              class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted"
+            >
+              Next
+              <svg
+                class="ml-2 h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </a>
+          ) : (
+            <div class="h-10 px-4" />
+          )
+        }
+      </div>
+    </div>
+
+    {/* 正文内容区 */}
+    <article
+      class="chapter-content-container prose prose-neutral dark:prose-invert max-w-none text-foreground"
+    >
+      {contentParagraphs.map((p) => <p>{p}</p>)}
+    </article>
+
+    {/* 底部导航控制 */}
+    <div
+      class="mt-16 flex items-center justify-between gap-4 border-t border-border/60 pt-8"
+    >
+      {
+        prevChapter ? (
+          <a
+            href={`/novel/${novelData.slug}/chapter-${prevChapter.number}`}
+            class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted"
+          >
+            <svg
+              class="mr-2 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Previous
+          </a>
+        ) : (
+          <div class="h-10 px-4" />
+        )
+      }
+
+      <ChapterIndexDrawer
+        client:load
+        novelId={novelData.id}
+        novelSlug={novelData.slug}
+        novelTitle={novelData.title}
+        totalChapters={totalChapters}
+      />
+
+      {
+        nextChapter ? (
+          <a
+            href={`/novel/${novelData.slug}/chapter-${nextChapter.number}`}
+            class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted"
+          >
+            Next
+            <svg
+              class="ml-2 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </a>
+        ) : (
+          <div class="h-10 px-4" />
+        )
+      }
+    </div>
+  </main>
+</Layout>

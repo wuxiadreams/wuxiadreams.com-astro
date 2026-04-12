@@ -46,7 +46,11 @@ const user = Astro.locals.user;
     <title>{title}</title>
   </head>
   <body>
-    <AdminSidebarContainer client:load currentPath={pathname} user={user}>
+    <AdminSidebarContainer
+      client:only="react"
+      currentPath={pathname}
+      user={user}
+    >
       <slot />
     </AdminSidebarContainer>
   </body>

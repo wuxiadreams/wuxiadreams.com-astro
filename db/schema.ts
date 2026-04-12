@@ -255,6 +255,7 @@ export const chapter = sqliteTable(
       .text("novel_id")
       .notNull()
       .references(() => novel.id, { onDelete: "cascade" }),
+    number: t.real("number").notNull(),
     title: t.text("title").notNull(),
     wordCount: t.integer("word_count").notNull().default(0),
     fileKey: t.text("file_key").notNull(),

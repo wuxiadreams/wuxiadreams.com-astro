@@ -1,7 +1,15 @@
 ---
 import AdminLayout from "@/layouts/admin-layout.astro";
+import CategoryTable from "./_table";
 ---
 
 <AdminLayout title="分类管理">
-  <h1>分类管理</h1>
+  <div class="flex flex-col gap-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">分类管理</h1>
+      <p class="text-muted-foreground">管理平台的所有小说分类</p>
+    </div>
+
+    <CategoryTable client:load />
+  </div>
 </AdminLayout>

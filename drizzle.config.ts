@@ -5,6 +5,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: process.env.LOCAL_DB_PATH || ".astro/content.db",
+    url: process.env.LOCAL_DB_PATH,
   },
 });
