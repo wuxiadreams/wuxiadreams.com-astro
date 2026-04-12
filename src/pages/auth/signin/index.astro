@@ -3,10 +3,6 @@ import { env } from "cloudflare:workers";
 import LayoutAuth from "@/layouts/auth-layout.astro";
 import { AuthForm } from "@/components/auth-form";
 
-// Determine if the current session (if any) is an admin
-// Not strictly needed here for the redirect because we do client-side auth in this page,
-// but it can be useful if we want to server-render the logic.
-// We will pass the admin emails to the client side.
 const adminEmails = env.ADMIN_EMAILS || "";
 ---
 

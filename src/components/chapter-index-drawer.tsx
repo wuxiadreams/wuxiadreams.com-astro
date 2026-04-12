@@ -142,7 +142,7 @@ export function ChapterIndexDrawer({
                     className="group flex flex-col justify-between rounded-xl border border-border/50 bg-card p-3 transition hover:border-primary/50 hover:bg-muted/30"
                   >
                     <span className="line-clamp-1 font-medium text-foreground group-hover:text-primary transition-colors text-sm">
-                      Chapter {chapter.number}: {chapter.title}
+                      {chapter.title}
                     </span>
                     <span className="mt-1 text-[10px] text-muted-foreground">
                       {formatDate(chapter.createdAt)}

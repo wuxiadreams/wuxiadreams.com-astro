@@ -18,9 +18,11 @@ const categories = await db.select().from(category).orderBy(category.name);
 
 // Build conditions
 let conditions = [eq(novel.published, true)];
-if (statusFilter === "ongoing") conditions.push(eq(novel.status, "Ongoing"));
-else if (statusFilter === "completed")
-  conditions.push(eq(novel.status, "Completed"));
+if (statusFilter === "ongoing") {
+  conditions.push(eq(novel.status, "ongoing"));
+} else if (statusFilter === "completed") {
+  conditions.push(eq(novel.status, "completed"));
+}
 
 // Count total
 const [{ total }] = await db
@@ -69,7 +71,7 @@ const r2Domain = env.R2_DOMAIN;
               categories.map((c) => (
                 <a
                   href={`/genre/${c.slug}?status=${statusFilter}`}
-                  class={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  class={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     currentCategorySlug === c.slug
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
