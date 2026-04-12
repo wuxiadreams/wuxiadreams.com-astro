@@ -199,17 +199,7 @@ const contentParagraphs = chapterContent
         )
       }
 
-      <ChapterIndexDrawer
-        client:load
-        novelId={novelData.id}
-        novelSlug={novelData.slug}
-        novelTitle={novelData.title}
-        totalChapters={totalChapters}
-      />
-
       <div class="flex items-center gap-2">
-        <ChapterSettings client:load />
-
         {
           nextChapter ? (
             <a
@@ -275,14 +265,6 @@ const contentParagraphs = chapterContent
         )
       }
 
-      <ChapterIndexDrawer
-        client:load
-        novelId={novelData.id}
-        novelSlug={novelData.slug}
-        novelTitle={novelData.title}
-        totalChapters={totalChapters}
-      />
-
       {
         nextChapter ? (
           <a
@@ -308,6 +290,31 @@ const contentParagraphs = chapterContent
           <div class="h-10 px-4" />
         )
       }
+    </div>
+
+    {/* 全局悬浮操作栏 */}
+    <div
+      class="fixed bottom-6 right-4 sm:bottom-10 sm:right-10 z-50 flex flex-col gap-3"
+    >
+      <div
+        class="flex flex-col gap-1 rounded-full bg-background/95 p-1.5 backdrop-blur-xl border border-border/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
+      >
+        <ChapterIndexDrawer
+          client:load
+          novelId={novelData.id}
+          novelSlug={novelData.slug}
+          novelTitle={novelData.title}
+          totalChapters={totalChapters}
+          triggerClassName="!rounded-full !w-10 !h-10 p-0 !bg-transparent hover:!bg-muted/80 text-foreground transition-all duration-200"
+          showText={false}
+        />
+        <div class="w-6 h-[1px] bg-border/60 mx-auto rounded-full my-0.5"></div>
+        <ChapterSettings
+          client:load
+          triggerClassName="!rounded-full !w-10 !h-10 p-0 !bg-transparent hover:!bg-muted/80 text-foreground transition-all duration-200"
+          showText={false}
+        />
+      </div>
     </div>
   </main>
 </Layout>

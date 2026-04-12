@@ -11,7 +11,9 @@ import {
   novelTag,
   tag,
   chapter,
+  userLibrary,
 } from "@/db/schema";
+import { AddToLibraryButton } from "@/components/add-to-library-button";
 import { eq, asc, and, count, desc } from "drizzle-orm";
 
 const { slug } = Astro.params;
@@ -276,29 +278,24 @@ const r2_domain = env.R2_DOMAIN;
 
             {/* 操作按钮区 */}
             <div class="mt-6 flex flex-wrap gap-3">
-              <button
-                class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-              >
-                Start Reading
-              </button>
-              <button
-                class="inline-flex h-11 items-center justify-center rounded-xl border border-border/70 bg-background px-6 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted"
-              >
-                <svg
-                  class="mr-2 h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                  ></path>
-                </svg>
-                Add to Library
-              </button>
+              {
+                chaptersData.length > 0 ? (
+                  <a
+                    href={`/novel/${novelData.slug}/chapter-${chaptersData[0].number}`}
+                    class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  >
+                    Start Reading
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    class="inline-flex h-11 items-center justify-center rounded-xl bg-muted px-8 text-sm font-semibold text-muted-foreground cursor-not-allowed"
+                  >
+                    No Chapters
+                  </button>
+                )
+              }
+              <AddToLibraryButton client:load novelId={novelData.id} />
             </div>
           </div>
         </div>

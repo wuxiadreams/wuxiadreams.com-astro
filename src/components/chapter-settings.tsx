@@ -1,6 +1,6 @@
 import * as React from "react";
 import {
-  Settings2,
+  Settings,
   Type,
   ArrowUpDown,
   Minus,
@@ -19,9 +19,14 @@ import {
 
 interface ChapterSettingsProps {
   // Can be expanded to pass other props if needed
+  triggerClassName?: string;
+  showText?: boolean;
 }
 
-export function ChapterSettings({}: ChapterSettingsProps) {
+export function ChapterSettings({
+  triggerClassName,
+  showText = true,
+}: ChapterSettingsProps) {
   // State for settings
   const [fontSize, setFontSize] = React.useState<number>(18); // Default font size 18px
   const [lineHeight, setLineHeight] = React.useState<number>(1.8); // Default line height 1.8
@@ -99,11 +104,13 @@ export function ChapterSettings({}: ChapterSettingsProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
+          className={`inline-flex items-center justify-center rounded-xl bg-secondary text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80 ${triggerClassName || "h-10 px-4"}`}
           aria-label="Chapter Settings"
         >
-          <Settings2 className="mr-2 h-4 w-4" />
-          Settings
+          <Settings
+            className={`${showText ? "mr-2 h-4 w-4" : "h-5 w-5 text-foreground dark:text-foreground/90"}`}
+          />
+          {showText && "Settings"}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 p-2">

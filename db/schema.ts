@@ -194,6 +194,10 @@ export const category = sqliteTable("category", {
   id: t.integer("id").primaryKey(),
   name: t.text("name").notNull().unique(),
   slug: t.text("slug").notNull().unique(),
+  isPinned: t
+    .integer("is_pinned", { mode: "boolean" })
+    .notNull()
+    .default(false),
   createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });

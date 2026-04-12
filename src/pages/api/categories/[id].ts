@@ -23,8 +23,8 @@ export async function PUT({
   }
 
   try {
-    const body = (await request.json()) as { name: string; slug: string };
-    const { name, slug } = body;
+    const body = (await request.json()) as { name?: string; slug?: string; isPinned?: boolean };
+    const { name, slug, isPinned } = body;
     const categoryId = Number(params.id);
 
     if (isNaN(categoryId)) {
@@ -34,35 +34,31 @@ export async function PUT({
       });
     }
 
-    if (!name || !slug) {
-      return new Response(JSON.stringify({ error: "名称和 Slug 是必填项" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
+    // If name or slug are provided, we must check for duplicates
+    if (name && slug) {
+      const existingCategory = await db.query.category.findFirst({
+        where: and(
+          ne(category.id, categoryId),
+          or(eq(category.name, name), eq(category.slug, slug)),
+        ),
       });
+
+      if (existingCategory) {
+        return new Response(JSON.stringify({ error: "分类名称或 Slug 已存在" }), {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // Explicitly check for existing category excluding current one
-    const existingCategory = await db.query.category.findFirst({
-      where: and(
-        ne(category.id, categoryId),
-        or(eq(category.name, name), eq(category.slug, slug)),
-      ),
-    });
-
-    if (existingCategory) {
-      return new Response(JSON.stringify({ error: "分类名称或 Slug 已存在" }), {
-        status: 409,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const updateData: any = { updatedAt: new Date() };
+    if (name !== undefined) updateData.name = name;
+    if (slug !== undefined) updateData.slug = slug;
+    if (isPinned !== undefined) updateData.isPinned = isPinned;
 
     const updatedCategory = await db
       .update(category)
-      .set({
-        name,
-        slug,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(category.id, categoryId))
       .returning();
 

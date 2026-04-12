@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { AuthForm } from "./auth-form";

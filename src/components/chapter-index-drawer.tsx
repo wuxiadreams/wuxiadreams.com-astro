@@ -17,6 +17,8 @@ interface ChapterIndexDrawerProps {
   novelSlug: string;
   novelTitle: string;
   totalChapters: number;
+  triggerClassName?: string;
+  showText?: boolean;
 }
 
 export function ChapterIndexDrawer({
@@ -24,6 +26,8 @@ export function ChapterIndexDrawer({
   novelSlug,
   novelTitle,
   totalChapters,
+  triggerClassName,
+  showText = true,
 }: ChapterIndexDrawerProps) {
   const [open, setOpen] = React.useState(false);
   const [chapters, setChapters] = React.useState<any[]>([]);
@@ -74,11 +78,15 @@ export function ChapterIndexDrawer({
     <Drawer open={open} onOpenChange={setOpen} direction="right">
       <DrawerTrigger asChild>
         <button
-          className="inline-flex h-10 items-center justify-center rounded-xl bg-secondary px-4 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
+          className={`inline-flex items-center justify-center rounded-xl bg-secondary text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80 ${
+            triggerClassName || "h-10 px-4"
+          }`}
           aria-label="Table of Contents"
         >
-          <ListCollapse className="mr-2 h-4 w-4" />
-          Index
+          <ListCollapse
+            className={`${showText ? "mr-2 h-4 w-4" : "h-5 w-5 text-foreground dark:text-foreground/90"}`}
+          />
+          {showText && "Index"}
         </button>
       </DrawerTrigger>
       <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-[80vw] sm:w-[400px] rounded-none">

@@ -1,0 +1,1 @@
+ALTER TABLE `category` ADD `is_pinned` integer DEFAULT false NOT NULL;

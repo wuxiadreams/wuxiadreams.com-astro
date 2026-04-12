@@ -14,3 +14,13 @@ export function sanitizeSlug(slug: string) {
     .replace(/^-+|-+$/g, "") // 去掉首尾"-"
     .toLocaleLowerCase(); // 转换为小写
 }
+
+export function formatDate(date: string | number | Date) {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}

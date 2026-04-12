@@ -7,6 +7,10 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Pin,
+  PinOff,
+  Check,
+  X,
 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +31,7 @@ import CreateCategoryDialog from "./_create";
 import EditCategoryDialog from "./_edit";
 import DeleteCategoryDialog from "./_delete";
 import type { CategoryType } from "@/pages/api/categories";
+import { toast } from "sonner";
 
 export default function CategoryTable() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,6 +105,24 @@ export default function CategoryTable() {
     }
   };
 
+  const handlePinToggle = async (category: CategoryType) => {
+    try {
+      const res = await fetch(`/api/categories/${category.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPinned: !category.isPinned }),
+      });
+      if (!res.ok) {
+        const errorData = (await res.json()) as { error?: string };
+        throw new Error(errorData.error || "操作失败");
+      }
+      toast.success(category.isPinned ? "取消置顶成功" : "置顶成功");
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    } catch (err: any) {
+      toast.error(err.message || "操作时出错");
+    }
+  };
+
   const renderSortIcon = (column: "createdAt" | "name") => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />;
@@ -158,6 +181,7 @@ export default function CategoryTable() {
                   {renderSortIcon("createdAt")}
                 </div>
               </TableHead>
+              <TableHead>置顶</TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -171,8 +195,27 @@ export default function CategoryTable() {
                     {category.slug}
                   </TableCell>
                   <TableCell>{formatDate(category.createdAt)}</TableCell>
+                  <TableCell>
+                    {category.isPinned ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handlePinToggle(category)}
+                        title={category.isPinned ? "取消置顶" : "置顶"}
+                      >
+                        {category.isPinned ? (
+                          <PinOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Pin className="h-4 w-4" />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -198,7 +241,7 @@ export default function CategoryTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="h-24 text-center text-muted-foreground"
                 >
                   未找到分类

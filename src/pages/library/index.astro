@@ -4,6 +4,8 @@ import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import { eq, desc } from "drizzle-orm";
 import * as schema from "@/db/schema";
+import { formatDate } from "@/lib/utils";
+import { RemoveLibraryButton } from "@/components/remove-library-button";
 
 // Check authentication
 const session = Astro.locals.session;
@@ -41,44 +43,51 @@ const r2Domain = env.R2_DOMAIN;
     {
       userLibrary.length > 0 ? (
         <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {userLibrary.map(({ novel }) => (
-            <a
-              href={`/novel/${novel.slug}`}
-              class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <div class="aspect-[2/3] w-full overflow-hidden bg-muted">
-                {novel.cover ? (
-                  <img
-                    src={`https://${r2Domain}/${novel.cover}`}
-                    alt={novel.title}
-                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div class="flex h-full w-full items-center justify-center text-muted-foreground">
-                    No cover
-                  </div>
-                )}
-              </div>
-              <div class="flex flex-1 flex-col p-4">
-                <h3 class="line-clamp-2 text-base font-semibold leading-tight group-hover:text-primary transition-colors">
-                  {novel.title}
-                </h3>
-                <div class="mt-auto pt-3 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{novel.chapterCount} Chapters</span>
-                  <span class="flex items-center gap-1">
-                    <svg
-                      class="h-3.5 w-3.5 text-yellow-500"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    {novel.score.toFixed(1)}
-                  </span>
+          {userLibrary.map(({ novel, addedAt }) => (
+            <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+              <RemoveLibraryButton
+                client:load
+                novelId={novel.id}
+                novelTitle={novel.title}
+              />
+              <a href={`/novel/${novel.slug}`} class="flex h-full flex-col">
+                <div class="aspect-[2/3] w-full overflow-hidden bg-muted">
+                  {novel.cover ? (
+                    <img
+                      src={`https://${r2Domain}/${novel.cover}`}
+                      alt={novel.title}
+                      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="flex h-full w-full items-center justify-center text-muted-foreground">
+                      No cover
+                    </div>
+                  )}
                 </div>
-              </div>
-            </a>
+                <div class="flex flex-1 flex-col p-4">
+                  <h3 class="line-clamp-2 text-base font-semibold leading-tight group-hover:text-primary transition-colors">
+                    {novel.title}
+                  </h3>
+                  <div class="mt-auto pt-3 flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{novel.chapterCount} Chapters</span>
+                    <span class="flex items-center gap-1">
+                      <svg
+                        class="h-3.5 w-3.5 text-yellow-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      {novel.score.toFixed(1)}
+                    </span>
+                  </div>
+                  <div class="mt-2 text-[11px] text-muted-foreground/70 border-t border-border/40 pt-2">
+                    Added on {formatDate(addedAt)}
+                  </div>
+                </div>
+              </a>
+            </div>
           ))}
         </div>
       ) : (
