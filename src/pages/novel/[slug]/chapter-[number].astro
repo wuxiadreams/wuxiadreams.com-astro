@@ -162,7 +162,9 @@ contentParagraphs =
     </nav>
 
     {/* 章节头部 */}
-    <div class="mb-0 sm:mb-8 border-b border-border/60 pb-8 text-center">
+    <div
+      class="mb-0 sm:mb-8 border-b border-border/60 pb-8 text-center relative"
+    >
       <h1
         class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl"
       >
@@ -172,6 +174,22 @@ contentParagraphs =
         class="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground"
       >
         <span>{currentChapter.wordCount} words</span>
+      </div>
+
+      <div
+        class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-background px-4 text-xs text-muted-foreground/70 flex items-center gap-1 hidden sm:flex"
+      >
+        <span class="mr-1">Press</span>
+        <kbd
+          class="rounded border border-border bg-muted px-1.5 font-mono text-[10px]"
+          >←</kbd
+        >
+        <span class="mx-1">or</span>
+        <kbd
+          class="rounded border border-border bg-muted px-1.5 font-mono text-[10px]"
+          >→</kbd
+        >
+        <span class="ml-1">to navigate</span>
       </div>
     </div>
 
@@ -279,8 +297,24 @@ contentParagraphs =
 
     {/* 底部导航控制 */}
     <div
-      class="mt-16 flex items-center justify-between gap-4 border-t border-border/60 pt-8"
+      class="mt-16 flex items-center justify-between gap-4 border-t border-border/60 pt-8 relative"
     >
+      <div
+        class="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-4 text-xs text-muted-foreground/70 flex items-center gap-1 hidden sm:flex"
+      >
+        <span class="mr-1">Press</span>
+        <kbd
+          class="rounded border border-border bg-muted px-1.5 font-mono text-[10px]"
+          >←</kbd
+        >
+        <span class="mx-1">or</span>
+        <kbd
+          class="rounded border border-border bg-muted px-1.5 font-mono text-[10px]"
+          >→</kbd
+        >
+        <span class="ml-1">to navigate</span>
+      </div>
+
       {
         prevChapter ? (
           <a
@@ -395,4 +429,28 @@ contentParagraphs =
       </div>
     </div>
   </main>
+
+  <script
+    is:inline
+    define:vars={{
+      prevUrl: prevChapter
+        ? `/novel/${novelData.slug}/chapter-${prevChapter.number}`
+        : null,
+      nextUrl: nextChapter
+        ? `/novel/${novelData.slug}/chapter-${nextChapter.number}`
+        : null,
+    }}
+  >
+    document.addEventListener("keydown", (e) => {
+      // Don't trigger if user is typing in an input or textarea
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
+        return;
+
+      if (e.key === "ArrowLeft" && prevUrl) {
+        window.location.href = prevUrl;
+      } else if (e.key === "ArrowRight" && nextUrl) {
+        window.location.href = nextUrl;
+      }
+    });
+  </script>
 </Layout>
