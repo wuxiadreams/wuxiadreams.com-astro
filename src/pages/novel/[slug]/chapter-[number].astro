@@ -162,7 +162,7 @@ contentParagraphs =
     </nav>
 
     {/* 章节头部 */}
-    <div class="mb-8 border-b border-border/60 pb-8 text-center">
+    <div class="mb-0 sm:mb-8 border-b border-border/60 pb-8 text-center">
       <h1
         class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl"
       >
@@ -176,7 +176,9 @@ contentParagraphs =
     </div>
 
     {/* 顶部导航控制 */}
-    <div class="mb-10 flex items-center justify-between gap-4">
+    <div
+      class="sticky top-16 z-30 mb-10 -mx-4 flex items-center justify-between gap-4 bg-background/70 px-4 py-3 backdrop-blur border-b border-border/60 sm:static sm:mx-0 sm:px-0 sm:border-none sm:bg-transparent sm:backdrop-blur-none sm:py-0"
+    >
       {
         prevChapter ? (
           <a
