@@ -2,23 +2,27 @@
 import Layout from "@/layouts/layout.astro";
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
-import { count, eq } from "drizzle-orm";
+import { count, eq, and } from "drizzle-orm";
 import * as schema from "@/db/schema";
 
 const db = drizzle(env.DB, { schema });
 
-// Fetch all tags and join with novelTag to get novel count
+// Fetch all tags and join with novelTag and novel to get published novel count
 const allTags = await db
   .select({
     id: schema.tag.id,
     name: schema.tag.name,
     slug: schema.tag.slug,
-    novelCount: count(schema.novelTag.novelId),
+    novelCount: count(schema.novel.id),
   })
   .from(schema.tag)
+  .leftJoin(schema.novelTag, eq(schema.tag.id, schema.novelTag.tagId))
   .leftJoin(
-    schema.novelTag,
-    eq(schema.tag.id, schema.novelTag.tagId),
+    schema.novel,
+    and(
+      eq(schema.novelTag.novelId, schema.novel.id),
+      eq(schema.novel.published, true),
+    ),
   )
   .groupBy(schema.tag.id)
   .orderBy(schema.tag.name);
