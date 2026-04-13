@@ -3,9 +3,11 @@ import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { db } from "@/lib/db";
 import { tag, novelTag, novel } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 
 const { slug } = Astro.params;
+const page = Number(Astro.url.searchParams.get("page")) || 1;
+const pageSize = 20;
 
 if (!slug) {
   return Astro.redirect("/tags");
@@ -18,7 +20,16 @@ if (!tagData) {
   return Astro.redirect("/tags");
 }
 
-// 2. 获取该标签下的所有已发布小说
+// 2. 获取该标签下的所有已发布小说总数
+const [{ total }] = await db
+  .select({ total: count() })
+  .from(novelTag)
+  .innerJoin(novel, eq(novelTag.novelId, novel.id))
+  .where(and(eq(novelTag.tagId, tagData.id), eq(novel.published, true)));
+
+const totalPages = Math.ceil(total / pageSize);
+
+// 3. 获取当前页的已发布小说
 const tagNovels = await db
   .select({
     id: novel.id,
@@ -33,7 +44,9 @@ const tagNovels = await db
   .from(novelTag)
   .innerJoin(novel, eq(novelTag.novelId, novel.id))
   .where(and(eq(novelTag.tagId, tagData.id), eq(novel.published, true)))
-  .orderBy(desc(novel.views));
+  .orderBy(desc(novel.views))
+  .limit(pageSize)
+  .offset((page - 1) * pageSize);
 
 const r2Domain = env.R2_DOMAIN;
 ---
@@ -90,9 +103,7 @@ const r2Domain = env.R2_DOMAIN;
       <div class="mt-8 flex items-center gap-6 border-t border-border/50 pt-6">
         <div class="flex flex-col">
           <span class="text-sm font-medium text-muted-foreground">Novels</span>
-          <span class="text-2xl font-bold text-foreground"
-            >{tagNovels.length}</span
-          >
+          <span class="text-2xl font-bold text-foreground">{total}</span>
         </div>
       </div>
     </div>
@@ -180,6 +191,37 @@ const r2Domain = env.R2_DOMAIN;
             We couldn't find any published novels for this tag yet. Please check
             back later.
           </p>
+        </div>
+      )
+    }
+
+    {/* 分页控制区 */}
+    {
+      totalPages > 1 && (
+        <div class="mt-12 flex items-center justify-center gap-2">
+          <a
+            href={`?page=${page - 1}`}
+            class={`inline-flex h-10 items-center justify-center rounded-xl border border-border/60 bg-card px-4 text-sm font-medium transition-colors ${
+              page <= 1
+                ? "pointer-events-none opacity-50"
+                : "hover:bg-muted hover:text-foreground text-muted-foreground"
+            }`}
+          >
+            Previous
+          </a>
+          <div class="flex items-center justify-center px-4 text-sm font-medium text-muted-foreground">
+            Page {page} of {totalPages}
+          </div>
+          <a
+            href={`?page=${page + 1}`}
+            class={`inline-flex h-10 items-center justify-center rounded-xl border border-border/60 bg-card px-4 text-sm font-medium transition-colors ${
+              page >= totalPages
+                ? "pointer-events-none opacity-50"
+                : "hover:bg-muted hover:text-foreground text-muted-foreground"
+            }`}
+          >
+            Next
+          </a>
         </div>
       )
     }
