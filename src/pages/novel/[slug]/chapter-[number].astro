@@ -290,9 +290,9 @@ contentParagraphs =
 
     {/* 正文内容区 */}
     <article
-      class="chapter-content-container prose prose-neutral dark:prose-invert max-w-none text-foreground"
+      class="chapter-content-container prose prose-neutral dark:prose-invert max-w-none text-foreground break-words"
     >
-      {contentParagraphs.map((p) => <p>{p}</p>)}
+      {contentParagraphs.map((p) => <p class="whitespace-pre-wrap">{p}</p>)}
     </article>
 
     {/* 底部导航控制 */}
