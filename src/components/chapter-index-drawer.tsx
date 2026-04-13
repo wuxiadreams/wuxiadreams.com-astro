@@ -89,7 +89,7 @@ export function ChapterIndexDrawer({
           {showText && "Index"}
         </button>
       </DrawerTrigger>
-      <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-[80vw] sm:w-[400px] rounded-none">
+      <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-[75vw] sm:w-[400px] rounded-none">
         <div className="mx-auto w-full flex flex-col h-full overflow-hidden">
           <DrawerHeader>
             <DrawerTitle className="text-xl font-bold">
@@ -134,7 +134,7 @@ export function ChapterIndexDrawer({
                 </span>
               </div>
             ) : (
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-2 grid-cols-1">
                 {chapters.map((chapter) => (
                   <a
                     key={chapter.id}
