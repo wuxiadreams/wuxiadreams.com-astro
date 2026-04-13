@@ -65,6 +65,7 @@ export const chapter = {
             id: chapterSchema.id,
             title: chapterSchema.title,
             number: chapterSchema.number,
+            wordCount: chapterSchema.wordCount,
             createdAt: chapterSchema.createdAt,
           })
           .from(chapterSchema)

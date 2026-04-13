@@ -212,7 +212,7 @@ const isActive = (href: string, exact: boolean = false) => {
   logoutBtns.forEach((btn) => {
     btn.addEventListener("click", async () => {
       await authClient.signOut();
-      window.location.href = "/";
+      window.location.reload();
     });
   });
 </script>

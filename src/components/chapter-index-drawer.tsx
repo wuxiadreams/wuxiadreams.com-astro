@@ -144,9 +144,12 @@ export function ChapterIndexDrawer({
                     <span className="line-clamp-1 font-medium text-foreground group-hover:text-primary transition-colors text-sm">
                       {chapter.title}
                     </span>
-                    <span className="mt-1 text-[10px] text-muted-foreground">
-                      {formatDate(chapter.createdAt)}
-                    </span>
+                    <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{formatDate(chapter.createdAt)}</span>
+                      {chapter.wordCount !== undefined && (
+                        <span>{chapter.wordCount} words</span>
+                      )}
+                    </div>
                   </a>
                 ))}
               </div>

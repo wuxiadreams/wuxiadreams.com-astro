@@ -1,4 +1,3 @@
-import * as React from "react";
 import { LogOut, LayoutDashboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -31,7 +30,7 @@ export function UserMenu({
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          window.location.href = "/";
+          window.location.reload();
         },
       },
     });

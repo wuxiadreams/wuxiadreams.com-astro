@@ -51,7 +51,14 @@ const r2Domain = env.R2_DOMAIN;
                 novelTitle={novel.title}
               />
               <a href={`/novel/${novel.slug}`} class="flex h-full flex-col">
-                <div class="aspect-[2/3] w-full overflow-hidden bg-muted">
+                <div class="aspect-[2/3] w-full overflow-hidden bg-muted relative">
+                  <div class="absolute left-2 top-2 z-10">
+                    <span
+                      class={`inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-[10px] font-semibold lowercase tracking-wider shadow backdrop-blur-sm ${novel.status === "ongoing" ? "bg-chart-4/90 text-zinc-950" : "bg-primary/90 text-primary-foreground"}`}
+                    >
+                      {novel.status}
+                    </span>
+                  </div>
                   {novel.cover ? (
                     <img
                       src={`https://${r2Domain}/${novel.cover}`}
@@ -70,7 +77,9 @@ const r2Domain = env.R2_DOMAIN;
                     {novel.title}
                   </h3>
                   <div class="mt-auto pt-3 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{novel.chapterCount} Chapters</span>
+                    <span class="flex items-center gap-1 font-medium bg-muted/50 px-2 py-0.5 rounded-md">
+                      {novel.chapterCount} Chapters
+                    </span>
                     <span class="flex items-center gap-1">
                       <svg
                         class="h-3.5 w-3.5 text-yellow-500"
