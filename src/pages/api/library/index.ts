@@ -1,6 +1,6 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { userLibrary } from "@/db/schema";
+import { userLibrary, novel } from "@/db/schema";
 
 export async function POST({
   locals,
@@ -49,6 +49,12 @@ export async function POST({
       novelId,
       createdAt: new Date(),
     });
+
+    // Increment bookmark_count for the novel
+    await db
+      .update(novel)
+      .set({ bookmarkCount: sql`${novel.bookmarkCount} + 1` })
+      .where(eq(novel.id, novelId));
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

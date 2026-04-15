@@ -1,7 +1,54 @@
 ---
 import AdminLayout from "@/layouts/admin-layout.astro";
+import { env } from "cloudflare:workers";
+import { drizzle } from "drizzle-orm/d1";
+import { eq, asc } from "drizzle-orm";
+import * as schema from "@/db/schema";
+import { RANK_TYPE } from "@/lib/constants";
+import { RankingsTabs } from "./_table";
+
+const db = drizzle(env.DB, { schema });
+
+// Fetch ranking data for each type
+const fetchRankings = async (type: string) => {
+  return await db
+    .select({
+      id: schema.novel.id,
+      title: schema.novel.title,
+      slug: schema.novel.slug,
+      status: schema.novel.status,
+      rank: schema.ranking.rank,
+      score: schema.ranking.score,
+    })
+    .from(schema.ranking)
+    .innerJoin(schema.novel, eq(schema.ranking.novelId, schema.novel.id))
+    .where(eq(schema.ranking.type, type))
+    .orderBy(asc(schema.ranking.rank));
+};
+
+const [weeklyRankings, monthlyRankings, risingStarRankings] = await Promise.all(
+  [
+    fetchRankings(RANK_TYPE.WEEKLY),
+    fetchRankings(RANK_TYPE.MONTHLY),
+    fetchRankings(RANK_TYPE.RISING_STAR),
+  ],
+);
 ---
 
-<AdminLayout title="排行榜管理">
-  <h1>排行榜管理</h1>
+<AdminLayout title="排行榜">
+  <div class="flex flex-col gap-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">排行榜</h1>
+      <p class="text-muted-foreground">
+        管理平台基于数据库实时缓存的各类小说排行榜数据
+      </p>
+    </div>
+
+    <RankingsTabs
+      client:load
+      weeklyRankings={weeklyRankings}
+      monthlyRankings={monthlyRankings}
+      risingStarRankings={risingStarRankings}
+    />
+  </div>
 </AdminLayout>

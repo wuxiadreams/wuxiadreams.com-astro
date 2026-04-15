@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/layout.astro";
 import { db } from "@/lib/db";
-import { novel, chapter } from "@/db/schema";
+import { novel, chapter, author, novelAuthor } from "@/db/schema";
 import { eq, and, lt, gt, desc, asc, count } from "drizzle-orm";
 import { actions } from "astro:actions";
 import { ChapterSettings } from "@/components/chapter-settings";
@@ -20,8 +20,13 @@ const novelData = await db
     id: novel.id,
     title: novel.title,
     slug: novel.slug,
+    authorName: author.name,
+    authorNameAlt: author.nameAlt,
+    authorSlug: author.slug,
   })
   .from(novel)
+  .leftJoin(novelAuthor, eq(novel.id, novelAuthor.novelId))
+  .leftJoin(author, eq(novelAuthor.authorId, author.id))
   .where(and(eq(novel.slug, slug), eq(novel.published, true)))
   .get();
 
@@ -173,6 +178,27 @@ contentParagraphs =
       <div
         class="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground"
       >
+        <a
+          href={`/novel/${novelData.slug}`}
+          class="hover:text-primary transition-colors"
+        >
+          {novelData.title}
+        </a>
+        <span>•</span>
+        {
+          novelData.authorSlug ? (
+            <a
+              href={`/author/${novelData.authorSlug}`}
+              class="hover:text-primary transition-colors"
+            >
+              {novelData.authorName}{" "}
+              {novelData.authorNameAlt ? `(${novelData.authorNameAlt})` : ""}
+            </a>
+          ) : (
+            <span>Unknown</span>
+          )
+        }
+        <span>•</span>
         <span>{currentChapter.wordCount} words</span>
       </div>
 

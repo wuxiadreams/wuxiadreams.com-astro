@@ -21,7 +21,8 @@
     {
       "binding": "DB",
       "database_name": "wuxiadreams",
-      "database_id": "02d3726d-4f1e-4a35-9769-e4dfc0c25a1a",
+      "database_id": "99a42d30-aed0-4776-919e-e7e884610c88",
+      "migrations_dir": "drizzle",
     },
   ],
 }

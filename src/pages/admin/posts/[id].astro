@@ -1,0 +1,34 @@
+---
+import AdminLayout from "@/layouts/admin-layout.astro";
+import PostForm from "./_form.tsx";
+import { env } from "cloudflare:workers";
+import { drizzle } from "drizzle-orm/d1";
+import { eq } from "drizzle-orm";
+import * as schema from "@/db/schema";
+
+const { id } = Astro.params;
+const db = drizzle(env.DB, { schema });
+
+if (!id) {
+  return Astro.redirect("/admin/posts");
+}
+
+const post = await db.query.post.findFirst({
+  where: eq(schema.post.id, id),
+});
+
+if (!post) {
+  return Astro.redirect("/admin/posts");
+}
+---
+
+<AdminLayout title={`编辑文章: ${post.title}`}>
+  <div class="flex flex-col gap-6">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight">编辑文章</h1>
+      <p class="text-muted-foreground">修改现有的文章或公告</p>
+    </div>
+
+    <PostForm client:only="react" initialData={post} />
+  </div>
+</AdminLayout>

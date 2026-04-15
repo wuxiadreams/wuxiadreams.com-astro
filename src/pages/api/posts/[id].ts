@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { novel, novelAuthor } from "@/db/schema";
+import { post } from "@/db/schema";
 
 export async function PUT({
   locals,
@@ -23,61 +23,39 @@ export async function PUT({
   }
 
   try {
-    const novelId = params.id;
-    if (!novelId) {
-      return new Response(JSON.stringify({ error: "无效的小说 ID" }), {
+    const postId = params.id;
+    if (!postId) {
+      return new Response(JSON.stringify({ error: "文章ID不能为空" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
     const body = (await request.json()) as Record<string, any>;
-    const { authorId, ...novelUpdateData } = body;
 
     // Support partial updates
-    const updatedNovel = await db
-      .update(novel)
+    const updatedPost = await db
+      .update(post)
       .set({
-        ...novelUpdateData,
+        ...body,
         updatedAt: new Date(),
       })
-      .where(eq(novel.id, novelId))
+      .where(eq(post.id, postId))
       .returning();
 
-    // Handle authorId update
-    if (authorId && updatedNovel[0]) {
-      // Check if mapping exists
-      const existingMapping = await db.query.novelAuthor.findFirst({
-        where: eq(novelAuthor.novelId, novelId),
-      });
-
-      if (existingMapping) {
-        await db
-          .update(novelAuthor)
-          .set({ authorId: authorId })
-          .where(eq(novelAuthor.novelId, novelId));
-      } else {
-        await db.insert(novelAuthor).values({
-          novelId: novelId,
-          authorId: authorId,
-          createdAt: new Date(),
-        });
-      }
-    }
-
-    if (updatedNovel.length === 0) {
-      return new Response(JSON.stringify({ error: "小说不存在" }), {
+    if (updatedPost.length === 0) {
+      return new Response(JSON.stringify({ error: "文章未找到或更新失败" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify(updatedNovel[0]), {
+    return new Response(JSON.stringify(updatedPost[0]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: "更新小说失败" }), {
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "更新文章失败" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
@@ -102,33 +80,32 @@ export async function DELETE({
   }
 
   try {
-    const novelId = params.id;
-
-    if (!novelId) {
-      return new Response(JSON.stringify({ error: "无效的小说 ID" }), {
+    const postId = params.id;
+    if (!postId) {
+      return new Response(JSON.stringify({ error: "文章ID不能为空" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    const deletedNovel = await db
-      .delete(novel)
-      .where(eq(novel.id, novelId))
+    const deletedPost = await db
+      .delete(post)
+      .where(eq(post.id, postId))
       .returning();
 
-    if (deletedNovel.length === 0) {
-      return new Response(JSON.stringify({ error: "小说不存在" }), {
+    if (deletedPost.length === 0) {
+      return new Response(JSON.stringify({ error: "文章未找到" }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ message: "文章删除成功" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: "删除小说失败" }), {
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "删除文章失败" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

@@ -1,5 +1,5 @@
 // src/db/schema.ts
-import { sqliteTable, primaryKey, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, primaryKey, index, check } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
@@ -121,7 +121,8 @@ export const novel = sqliteTable(
     banner: t.text("banner"),
     chapterCount: t.integer("chapter_count").notNull().default(0),
     status: t.text("status").notNull(),
-    views: t.integer("views").notNull().default(0),
+    viewCount: t.integer("view_count").notNull().default(0),
+    bookmarkCount: t.integer("bookmark_count").notNull().default(0),
     reviewCount: t.integer("review_count").notNull().default(0),
     score: t.real("score").notNull().default(0),
     officialLink: t.text("official_link"),
@@ -149,8 +150,9 @@ export const novel = sqliteTable(
     index("novel_published_at_idx").on(table.publishedAt),
     index("novel_is_pinned_idx").on(table.isPinned),
     index("novel_score_idx").on(table.score),
-    index("novel_views_idx").on(table.views),
+    index("novel_view_count_idx").on(table.viewCount),
     index("novel_review_count_idx").on(table.reviewCount),
+    check("bookmark_count_check", sql`${table.bookmarkCount} >= 0`),
   ],
 );
 
@@ -279,25 +281,95 @@ export const chapter = sqliteTable(
   ],
 );
 
-export const novelRank = sqliteTable(
-  "novel_rank",
+import { relations } from "drizzle-orm";
+
+export const novelRelations = relations(novel, ({ many }) => ({
+  chapters: many(chapter),
+  novelAuthors: many(novelAuthor),
+  novelCategories: many(novelCategory),
+  novelTags: many(novelTag),
+}));
+
+export const chapterRelations = relations(chapter, ({ one }) => ({
+  novel: one(novel, {
+    fields: [chapter.novelId],
+    references: [novel.id],
+  }),
+}));
+
+export const authorRelations = relations(author, ({ many }) => ({
+  novelAuthors: many(novelAuthor),
+}));
+
+export const novelAuthorRelations = relations(novelAuthor, ({ one }) => ({
+  novel: one(novel, {
+    fields: [novelAuthor.novelId],
+    references: [novel.id],
+  }),
+  author: one(author, {
+    fields: [novelAuthor.authorId],
+    references: [author.id],
+  }),
+}));
+
+export const tagRelations = relations(tag, ({ many }) => ({
+  novelTags: many(novelTag),
+}));
+
+export const novelTagRelations = relations(novelTag, ({ one }) => ({
+  novel: one(novel, {
+    fields: [novelTag.novelId],
+    references: [novel.id],
+  }),
+  tag: one(tag, {
+    fields: [novelTag.tagId],
+    references: [tag.id],
+  }),
+}));
+
+export const categoryRelations = relations(category, ({ many }) => ({
+  novelCategories: many(novelCategory),
+}));
+
+export const novelCategoryRelations = relations(novelCategory, ({ one }) => ({
+  novel: one(novel, {
+    fields: [novelCategory.novelId],
+    references: [novel.id],
+  }),
+  category: one(category, {
+    fields: [novelCategory.categoryId],
+    references: [category.id],
+  }),
+}));
+
+export const dailyStat = sqliteTable(
+  "daily_stat",
   {
-    id: t
-      .text("id")
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
     novelId: t
       .text("novel_id")
       .notNull()
       .references(() => novel.id, { onDelete: "cascade" }),
-    rank_type: t.text("rank_type").notNull(),
-    ranking: t.integer("ranking").notNull().default(0),
-    createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    date: t.text("date").notNull(),
+    viewCount: t.integer("view_count").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({ columns: [table.novelId, table.date] }),
+    index("idx_daily_stat_date").on(table.date),
+  ],
+);
+
+export const ranking = sqliteTable(
+  "ranking",
+  {
+    type: t.text("type").notNull(),
+    novelId: t.text("novel_id").notNull(),
+    rank: t.integer("rank").notNull(),
+    score: t.real("score").notNull().default(0),
     updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [
-    index("novel_rank_novel_id_idx").on(table.novelId),
-    index("novel_rank_type_ranking_idx").on(table.rank_type, table.ranking),
+    primaryKey({ columns: [table.type, table.novelId] }),
+    index("type_rank_index").on(table.type, table.rank),
   ],
 );
 

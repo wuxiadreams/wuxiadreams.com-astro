@@ -2,14 +2,11 @@ import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
   RefreshCcw,
-  Eye,
-  Edit,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Check,
   X,
-  Pin,
 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
@@ -25,11 +22,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import DeleteNovelDialog from "./_delete";
-import NovelActions from "./_actions";
-import type { NovelListResponse, NovelType } from "@/pages/api/novels";
+import DeletePostDialog from "./_delete.tsx";
+import PostActions from "./_actions.tsx";
+import type { PostListResponse, PostType } from "@/pages/api/posts";
 
-export default function NovelTable() {
+export default function PostTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,7 +35,7 @@ export default function NovelTable() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Delete Confirmation state
-  const [deletingNovel, setDeletingNovel] = useState<NovelType | null>(null);
+  const [deletingPost, setDeletingPost] = useState<PostType | null>(null);
 
   const params = {
     page: String(currentPage),
@@ -51,16 +48,16 @@ export default function NovelTable() {
   const queryClient = useStore(reactQueryClient);
   const { data, isFetching } = useQuery(
     {
-      queryKey: ["novels", params],
-      queryFn: async (): Promise<NovelListResponse> => {
-        const res = await fetch(`/api/novels?${queryString}`);
+      queryKey: ["posts", params],
+      queryFn: async (): Promise<PostListResponse> => {
+        const res = await fetch(`/api/posts?${queryString}`);
         return res.json();
       },
     },
     queryClient,
   );
 
-  const novels = data?.items || [];
+  const posts = data?.items || [];
   const meta = data?.meta || { total: 0, totalPages: 0 };
   const { total, totalPages } = meta;
 
@@ -80,7 +77,7 @@ export default function NovelTable() {
   };
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["novels"] });
+    queryClient.invalidateQueries({ queryKey: ["posts"] });
   };
 
   const handleSort = (column: "createdAt" | "title") => {
@@ -107,7 +104,7 @@ export default function NovelTable() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Input
-            placeholder="按小说名称、别名或 Slug 搜索..."
+            placeholder="按文章标题或 Slug 搜索..."
             value={searchQuery}
             onChange={handleSearch}
             className="w-72"
@@ -118,12 +115,8 @@ export default function NovelTable() {
             onClick={handleRefresh}
           />
         </div>
-        <a
-          href="/admin/novels/create"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button>新建小说</Button>
+        <a href="/admin/posts/create" target="_blank" rel="noopener noreferrer">
+          <Button>新建文章</Button>
         </a>
       </div>
 
@@ -145,11 +138,8 @@ export default function NovelTable() {
                   {renderSortIcon("title")}
                 </div>
               </TableHead>
-              <TableHead className="w-[240px]">别名</TableHead>
               <TableHead className="w-[240px]">Slug</TableHead>
-              <TableHead>状态</TableHead>
               <TableHead>发布</TableHead>
-              <TableHead>置顶</TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort("createdAt")}
@@ -163,71 +153,43 @@ export default function NovelTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {novels.length > 0 ? (
-              novels.map((novel) => (
-                <TableRow key={novel.id}>
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <TableRow key={post.id}>
                   <TableCell
                     className="font-medium max-w-[240px] whitespace-normal break-words"
-                    title={novel.title}
+                    title={post.title}
                   >
-                    <div className="flex items-start space-x-2">
-                      {novel.isPinned && (
-                        <Pin className="h-3 w-3 text-primary shrink-0 mt-1" />
-                      )}
-                      <a
-                        href={`/novel/${novel.slug}`}
-                        target="_blank"
-                        className="hover:underline hover:text-primary"
-                      >
-                        <span className="whitespace-normal wrap-break-word">
-                          {novel.title}
-                        </span>
-                      </a>
-                    </div>
-                  </TableCell>
-                  <TableCell
-                    className="max-w-[240px] whitespace-normal wrap-break-word"
-                    title={novel.titleAlt}
-                  >
-                    {novel.titleAlt}
+                    {post.title}
                   </TableCell>
                   <TableCell
                     className="text-muted-foreground max-w-[240px] whitespace-normal break-words"
-                    title={novel.slug}
+                    title={post.slug}
                   >
-                    {novel.slug}
+                    {post.slug}
                   </TableCell>
-                  <TableCell>{novel.status}</TableCell>
                   <TableCell>
-                    {novel.published ? (
+                    {post.published ? (
                       <Check className="h-4 w-4 text-green-500" />
                     ) : (
                       <X className="h-4 w-4 text-muted-foreground" />
                     )}
                   </TableCell>
-                  <TableCell>
-                    {novel.isPinned ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <X className="h-4 w-4 text-muted-foreground" />
-                    )}
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(post.createdAt)}
                   </TableCell>
-                  <TableCell>{formatDate(novel.createdAt)}</TableCell>
                   <TableCell className="text-right">
-                    <NovelActions
-                      novel={novel}
-                      onDeleteClick={setDeletingNovel}
-                    />
+                    <PostActions post={post} onDeleteClick={setDeletingPost} />
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  未找到小说
+                  {isFetching ? "加载中..." : "未找到文章"}
                 </TableCell>
               </TableRow>
             )}
@@ -235,37 +197,36 @@ export default function NovelTable() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-2">
+      <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          显示第 {(currentPage - 1) * pageSize + 1} 到{" "}
-          {Math.min(currentPage * pageSize, total)} 条记录，共 {total} 条记录
+          共 {total} 条数据，共 {totalPages} 页
         </div>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
+            disabled={currentPage === 1 || isFetching}
           >
             上一页
           </Button>
-          <div className="text-sm font-medium">
-            第 {currentPage} 页 / 共 {totalPages} 页
-          </div>
+          <div className="text-sm">第 {currentPage} 页</div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage >= totalPages || totalPages === 0}
+            disabled={
+              currentPage === totalPages || totalPages === 0 || isFetching
+            }
           >
             下一页
           </Button>
         </div>
       </div>
 
-      <DeleteNovelDialog
-        novel={deletingNovel}
-        onOpenChange={(open) => !open && setDeletingNovel(null)}
+      <DeletePostDialog
+        post={deletingPost}
+        onOpenChange={(open) => !open && setDeletingPost(null)}
       />
     </div>
   );

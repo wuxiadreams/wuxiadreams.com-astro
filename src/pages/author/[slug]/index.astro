@@ -31,7 +31,7 @@ const authorNovels = await db
     cover: novel.cover,
     status: novel.status,
     score: novel.score,
-    views: novel.views,
+    viewCount: novel.viewCount,
     chapterCount: novel.chapterCount,
   })
   .from(novelAuthor)
@@ -39,7 +39,7 @@ const authorNovels = await db
   .where(
     and(eq(novelAuthor.authorId, authorData.id), eq(novel.published, true)),
   )
-  .orderBy(desc(novel.views));
+  .orderBy(desc(novel.viewCount));
 
 const r2Domain = env.R2_DOMAIN;
 ---
@@ -178,7 +178,7 @@ const r2Domain = env.R2_DOMAIN;
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                       />
                     </svg>
-                    {novel.views.toLocaleString()}
+                    {novel.viewCount.toLocaleString()}
                   </span>
                   <span class="flex items-center gap-1">
                     <svg

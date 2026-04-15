@@ -1,6 +1,6 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { userLibrary } from "@/db/schema";
+import { userLibrary, novel } from "@/db/schema";
 
 export async function DELETE({
   locals,
@@ -45,6 +45,14 @@ export async function DELETE({
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // Decrement bookmark_count for the novel
+    await db
+      .update(novel)
+      .set({ 
+        bookmarkCount: sql`CASE WHEN ${novel.bookmarkCount} > 0 THEN ${novel.bookmarkCount} - 1 ELSE 0 END` 
+      })
+      .where(eq(novel.id, novelId));
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

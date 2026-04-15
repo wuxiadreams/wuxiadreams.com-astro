@@ -1,11 +1,11 @@
 import { env } from "cloudflare:workers";
 import { desc, asc, count, or, like } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { novel, novelAuthor, author } from "@/db/schema";
+import { post } from "@/db/schema";
 import type { PaginatedResponse } from "../users/index";
 
-export type NovelType = typeof novel.$inferSelect;
-export type NovelListResponse = PaginatedResponse<NovelType>;
+export type PostType = typeof post.$inferSelect;
+export type PostListResponse = PaginatedResponse<PostType>;
 
 export async function POST({
   locals,
@@ -26,11 +26,11 @@ export async function POST({
 
   try {
     const body = (await request.json()) as Record<string, any>;
-    const { title, titleAlt, slug, authorId, status, ...otherData } = body;
+    const { title, slug, cover, abstract, content, published, seoTitle, seoDescription } = body;
 
-    if (!title || !titleAlt || !slug || !status) {
+    if (!title || !slug || !cover) {
       return new Response(
-        JSON.stringify({ error: "标题、别名、Slug和状态是必填项" }),
+        JSON.stringify({ error: "标题、Slug和封面是必填项" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -38,35 +38,29 @@ export async function POST({
       );
     }
 
-    // 1. Create the novel
-    const newNovel = await db
-      .insert(novel)
+    // 1. Create the post
+    const newPost = await db
+      .insert(post)
       .values({
         title,
-        titleAlt,
         slug,
-        status,
-        ...otherData,
+        cover,
+        abstract: abstract || "",
+        content: content || "",
+        published: published || false,
+        seoTitle: seoTitle || "",
+        seoDescription: seoDescription || "",
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
-    // 2. Map author to novel if authorId is provided
-    if (authorId && newNovel[0]) {
-      await db.insert(novelAuthor).values({
-        novelId: newNovel[0].id,
-        authorId,
-        createdAt: new Date(),
-      });
-    }
-
-    return new Response(JSON.stringify(newNovel[0]), {
+    return new Response(JSON.stringify(newPost[0]), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: "创建小说失败" }), {
+    return new Response(JSON.stringify({ error: "创建文章失败" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
@@ -101,32 +95,30 @@ export async function GET({
 
   const queryFilter = search
     ? or(
-        like(novel.title, `%${search}%`),
-        like(novel.titleAlt, `%${search}%`),
-        like(novel.slug, `%${search}%`),
+        like(post.title, `%${search}%`),
+        like(post.slug, `%${search}%`),
       )
     : undefined;
 
   let orderByColumn;
   if (sortBy === "title") {
-    orderByColumn = sortOrder === "asc" ? asc(novel.title) : desc(novel.title);
+    orderByColumn = sortOrder === "asc" ? asc(post.title) : desc(post.title);
   } else {
     // Default to createdAt
     orderByColumn =
-      sortOrder === "asc" ? asc(novel.createdAt) : desc(novel.createdAt);
+      sortOrder === "asc" ? asc(post.createdAt) : desc(post.createdAt);
   }
 
   try {
     const [data, totalResult] = await Promise.all([
       db
         .select()
-        .from(novel)
+        .from(post)
         .where(queryFilter)
-        // Ensure pinned novels are always at the top
-        .orderBy(desc(novel.isPinned), orderByColumn)
+        .orderBy(orderByColumn)
         .limit(pageSize)
         .offset(offset),
-      db.select({ value: count() }).from(novel).where(queryFilter),
+      db.select({ value: count() }).from(post).where(queryFilter),
     ]);
 
     const total = totalResult[0].value;
@@ -147,6 +139,7 @@ export async function GET({
   } catch (error) {
     return new Response(JSON.stringify({ error: "数据库查询失败" }), {
       status: 500,
+      headers: { "Content-Type": "application/json" },
     });
   }
 }

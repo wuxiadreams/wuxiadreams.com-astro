@@ -1,112 +1,116 @@
 ---
 import Layout from "@/layouts/layout.astro";
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
-import { desc } from "drizzle-orm";
-import * as schema from "@/db/schema";
-
-const db = drizzle(env.DB, { schema });
-
-// Fetch top 10 novels by views
-const topViewed = await db.query.novel.findMany({
-  orderBy: [desc(schema.novel.views)],
-  limit: 10,
-});
-
-// Fetch top 10 novels by score
-const topRated = await db.query.novel.findMany({
-  orderBy: [desc(schema.novel.score)],
-  limit: 10,
-});
-
-const rankings = [
-  {
-    title: "Most Viewed",
-    description: "The most popular novels right now",
-    data: topViewed,
-    valueKey: "views",
-    valueLabel: "views",
-  },
-  {
-    title: "Highest Rated",
-    description: "Critically acclaimed by readers",
-    data: topRated,
-    valueKey: "score",
-    valueLabel: "rating",
-  },
-];
-
-// R2
-const r2Domain = env.R2_DOMAIN;
+import RankingSection from "@/components/ranking-section.astro";
+import { RANK_TYPE } from "@/lib/constants";
 ---
 
 <Layout title="Rankings — Wuxia Dreams">
-  <main class="mx-auto max-w-6xl px-4 py-12">
-    <div class="mb-12">
-      <h1 class="text-3xl font-bold tracking-tight">Rankings</h1>
-      <p class="mt-2 text-muted-foreground">
-        Discover the most popular and highly rated novels in our library.
+  <main class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mb-16 text-center max-w-2xl mx-auto">
+      <h1
+        class="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl"
+      >
+        Rankings
+      </h1>
+      <p class="mt-4 text-lg text-muted-foreground leading-relaxed">
+        Discover the most popular, trending, and highly rated novels across our
+        entire library. Updated regularly.
       </p>
     </div>
 
-    <div class="grid gap-10 md:grid-cols-2">
-      {
-        rankings.map((rank) => (
-          <section class="rounded-3xl border border-border/70 bg-card/40 p-6 shadow-sm backdrop-blur">
-            <div class="mb-6">
-              <h2 class="text-xl font-bold tracking-tight">{rank.title}</h2>
-              <p class="text-sm text-muted-foreground">{rank.description}</p>
-            </div>
+    {/* 顶部三个核心榜单，三列布局 */}
+    <div class="grid gap-10 md:grid-cols-2 xl:grid-cols-3 mb-16">
+      <section
+        class="rounded-3xl border border-border/70 bg-linear-to-b from-card/80 to-card/20 p-6 shadow-sm backdrop-blur-xl transition-all hover:shadow-lg"
+      >
+        <RankingSection type={RANK_TYPE.WEEKLY} server:defer>
+          <div
+            slot="fallback"
+            class="flex h-96 items-center justify-center text-muted-foreground"
+          >
+            Loading weekly rankings...
+          </div>
+        </RankingSection>
+      </section>
 
-            <div class="grid gap-3">
-              {rank.data.map((novel, index) => (
-                <a
-                  href={`/novel/${novel.slug}`}
-                  class="group flex items-center gap-4 overflow-hidden rounded-2xl border border-border/50 bg-background/50 p-3 transition hover:bg-muted/80 hover:shadow-sm"
-                >
-                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted font-bold text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    {index + 1}
-                  </div>
+      <section
+        class="rounded-3xl border border-border/70 bg-gradient-to-b from-card/80 to-card/20 p-6 shadow-sm backdrop-blur-xl transition-all hover:shadow-lg"
+      >
+        <RankingSection type={RANK_TYPE.MONTHLY} server:defer>
+          <div
+            slot="fallback"
+            class="flex h-96 items-center justify-center text-muted-foreground"
+          >
+            Loading monthly rankings...
+          </div>
+        </RankingSection>
+      </section>
 
-                  <div class="h-16 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
-                    {novel.cover ? (
-                      <img
-                        src={`https://${r2Domain}/${novel.cover}`}
-                        alt={novel.title}
-                        class="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div class="h-full w-full bg-muted/80" />
-                    )}
-                  </div>
+      <section
+        class="rounded-3xl border border-border/70 bg-gradient-to-b from-card/80 to-card/20 p-6 shadow-sm backdrop-blur-xl transition-all hover:shadow-lg"
+      >
+        <RankingSection type={RANK_TYPE.RISING_STAR} server:defer>
+          <div
+            slot="fallback"
+            class="flex h-96 items-center justify-center text-muted-foreground"
+          >
+            Loading rising stars...
+          </div>
+        </RankingSection>
+      </section>
+    </div>
 
-                  <div class="flex flex-1 flex-col min-w-0">
-                    <h3 class="truncate font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {novel.title}
-                    </h3>
-                    <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>
-                        {rank.valueKey === "score"
-                          ? `${novel.score.toFixed(1)} ${rank.valueLabel}`
-                          : `${novel.views.toLocaleString()} ${rank.valueLabel}`}
-                      </span>
-                      <span>•</span>
-                      <span class="truncate">{novel.status}</span>
-                    </div>
-                  </div>
-                </a>
-              ))}
+    {/* 分隔线 */}
+    <div class="my-16 flex items-center justify-center">
+      <div class="h-px w-full max-w-xs bg-border"></div>
+      <div
+        class="mx-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+      >
+        More Rankings
+      </div>
+      <div class="h-px w-full max-w-xs bg-border"></div>
+    </div>
 
-              {rank.data.length === 0 && (
-                <div class="py-8 text-center text-sm text-muted-foreground">
-                  No data available yet.
-                </div>
-              )}
-            </div>
-          </section>
-        ))
-      }
+    {/* 下方三个榜单，两列或三列布局 */}
+    <div class="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
+      <section
+        class="rounded-2xl border border-border/40 bg-card/10 p-5 backdrop-blur transition-all hover:bg-card/30"
+      >
+        <RankingSection type={RANK_TYPE.VIEW} server:defer>
+          <div
+            slot="fallback"
+            class="flex h-64 items-center justify-center text-muted-foreground text-sm"
+          >
+            Loading...
+          </div>
+        </RankingSection>
+      </section>
+
+      <section
+        class="rounded-2xl border border-border/40 bg-card/10 p-5 backdrop-blur transition-all hover:bg-card/30"
+      >
+        <RankingSection type={RANK_TYPE.BOOKMARK} server:defer>
+          <div
+            slot="fallback"
+            class="flex h-64 items-center justify-center text-muted-foreground text-sm"
+          >
+            Loading...
+          </div>
+        </RankingSection>
+      </section>
+
+      <section
+        class="rounded-2xl border border-border/40 bg-card/10 p-5 backdrop-blur transition-all hover:bg-card/30 md:col-span-2 xl:col-span-1"
+      >
+        <RankingSection type={RANK_TYPE.HIGH_RATED} server:defer>
+          <div
+            slot="fallback"
+            class="flex h-64 items-center justify-center text-muted-foreground text-sm"
+          >
+            Loading...
+          </div>
+        </RankingSection>
+      </section>
     </div>
   </main>
 </Layout>

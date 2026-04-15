@@ -11,10 +11,10 @@ import {
   novelTag,
   tag,
   chapter,
-  userLibrary,
+  dailyStat,
 } from "@/db/schema";
 import { AddToLibraryButton } from "@/components/add-to-library-button";
-import { eq, asc, and, count, desc } from "drizzle-orm";
+import { eq, asc, and, count, desc, sql } from "drizzle-orm";
 
 const { slug } = Astro.params;
 const url = new URL(Astro.request.url);
@@ -35,6 +35,43 @@ const novelData = await db
 
 if (!novelData) {
   return Astro.redirect("/novels");
+}
+
+const cookieName = `viewed_${novelData.id}`;
+if (!Astro.cookies.has(cookieName)) {
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+  // 增加小说总阅读量
+  await db
+    .update(novel)
+    .set({ viewCount: sql`${novel.viewCount} + 1` })
+    .where(eq(novel.id, novelData.id));
+
+  // 增加每日阅读统计
+  const stat = await db
+    .select()
+    .from(dailyStat)
+    .where(and(eq(dailyStat.novelId, novelData.id), eq(dailyStat.date, today)))
+    .get();
+
+  if (stat) {
+    await db
+      .update(dailyStat)
+      .set({ viewCount: sql`${dailyStat.viewCount} + 1` })
+      .where(
+        and(eq(dailyStat.novelId, novelData.id), eq(dailyStat.date, today)),
+      );
+  } else {
+    await db
+      .insert(dailyStat)
+      .values({ novelId: novelData.id, date: today, viewCount: 1 });
+  }
+
+  // 同步本地数据以在页面上显示更新后的值
+  novelData.viewCount += 1;
+
+  // 设置一个1小时过期的 Cookie
+  Astro.cookies.set(cookieName, "1", { maxAge: 3600, path: "/" });
 }
 
 // 2. 并行获取关联数据 (作者, 分类, 标签, 章节总数, 章节数据)
@@ -96,6 +133,8 @@ const [
     .offset((currentPage - 1) * pageSize),
 ]);
 
+console.log(authorsData);
+
 // 3. 获取作者相关的其他小说 (最多6本)
 let authorOtherNovels: any[] = [];
 if (authorsData.length > 0) {
@@ -118,7 +157,7 @@ if (authorsData.length > 0) {
       ),
     )
     .groupBy(novel.id)
-    .orderBy(desc(novel.views))
+    .orderBy(desc(novel.viewCount))
     .limit(7); // Fetch 7 to ensure we can show 6 *other* novels
 
   // Filter out the current novel
@@ -214,7 +253,7 @@ const r2_domain = env.R2_DOMAIN;
             }
 
             {/* 作者信息 */}
-            <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <div class="mt-4 flex items-start gap-2 text-sm">
               <span class="font-medium text-foreground">Author:</span>
               {
                 authorsData.length > 0 ? (
@@ -222,7 +261,7 @@ const r2_domain = env.R2_DOMAIN;
                     <>
                       <a
                         href={`/author/${a.slug}`}
-                        class="text-primary hover:underline flex items-center gap-1.5"
+                        class="text-primary hover:underline"
                       >
                         <span>{a.name}</span>
                         {a.nameAlt && (
@@ -255,7 +294,7 @@ const r2_domain = env.R2_DOMAIN;
               <div class="flex flex-col">
                 <span class="text-xs text-muted-foreground">Views</span>
                 <span class="mt-1 font-semibold text-foreground"
-                  >{novelData.views.toLocaleString()}</span
+                  >{novelData.viewCount.toLocaleString()}</span
                 >
               </div>
               <div class="flex flex-col">
