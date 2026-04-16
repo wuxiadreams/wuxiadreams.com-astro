@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/layout.astro";
+import { Image } from "astro:assets";
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import { eq, desc, count } from "drizzle-orm";
@@ -80,11 +81,14 @@ const r2Domain = env.R2_DOMAIN;
                     </span>
                   </div>
                   {novel.cover ? (
-                    <img
+                    <Image
                       src={`https://${r2Domain}/${novel.cover}`}
                       alt={novel.title}
-                      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      width={200}
+                      height={300}
                       loading="lazy"
+                      decoding="async"
+                      class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
                   ) : (
                     <div class="flex h-full w-full items-center justify-center text-muted-foreground">

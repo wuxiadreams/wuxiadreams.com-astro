@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/layout.astro";
+import { Image } from "astro:assets";
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import { like, count, desc, or, eq, and } from "drizzle-orm";
@@ -103,7 +104,7 @@ const r2Domain = env.R2_DOMAIN;
               href={`/novel/${novel.slug}`}
               class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
-              <div class="aspect-[2/3] w-full overflow-hidden bg-muted relative">
+              <div class="aspect-2/3 w-full overflow-hidden bg-muted relative">
                 <div class="absolute left-2 top-2 z-10">
                   <span
                     class={`inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-[10px] font-semibold lowercase tracking-wider shadow backdrop-blur-sm ${novel.status === "ongoing" ? "bg-chart-4/90 text-zinc-950" : "bg-primary/90 text-primary-foreground"}`}
@@ -112,11 +113,14 @@ const r2Domain = env.R2_DOMAIN;
                   </span>
                 </div>
                 {novel.cover ? (
-                  <img
+                  <Image
                     src={`https://${r2Domain}/${novel.cover}`}
                     alt={novel.title}
-                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    width={200}
+                    height={300}
                     loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div class="flex h-full w-full items-center justify-center text-muted-foreground">

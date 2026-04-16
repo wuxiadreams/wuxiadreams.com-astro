@@ -1,6 +1,7 @@
 ---
 import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
+import { Image } from "astro:assets";
 import { db } from "@/lib/db";
 import {
   novel,
@@ -230,11 +231,14 @@ const r2_domain = env.R2_DOMAIN;
             <div class="aspect-2/3 w-full">
               {
                 novelData.cover ? (
-                  <img
+                  <Image
                     src={`https://${r2_domain}/${novelData.cover}`}
                     alt={novelData.title}
+                    width={300}
+                    height={450}
+                    loading="eager"
+                    decoding="async"
                     class="h-full w-full object-cover"
-                    loading="lazy"
                   />
                 ) : (
                   <div class="flex h-full w-full items-center justify-center text-muted-foreground">
@@ -607,11 +611,14 @@ const r2_domain = env.R2_DOMAIN;
                   >
                     <div class="relative w-12 h-16 shrink-0 overflow-hidden rounded-md border border-border/50 bg-muted">
                       {n.cover ? (
-                        <img
+                        <Image
                           src={`https://${r2Domain}/${n.cover}`}
                           alt={n.title}
-                          class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          width={48}
+                          height={64}
                           loading="lazy"
+                          decoding="async"
+                          class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div class="flex h-full items-center justify-center bg-muted">

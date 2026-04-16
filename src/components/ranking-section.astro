@@ -1,6 +1,7 @@
 ---
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
+import { Image } from "astro:assets";
 import * as schema from "@/db/schema";
 import { fetchRankingData, RANKING_METADATA } from "@/lib/rankings";
 
@@ -61,11 +62,14 @@ const r2Domain = env.R2_DOMAIN;
 
           <div class="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted/50 relative shadow-sm">
             {novel.cover ? (
-              <img
+              <Image
                 src={`https://${r2Domain}/${novel.cover}`}
                 alt={novel.title}
-                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                width={48}
+                height={64}
                 loading="lazy"
+                decoding="async"
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <div class="h-full w-full bg-muted/80" />

@@ -1,5 +1,6 @@
 ---
 import { AuthDialog } from "@/components/auth-dialog";
+import { Image } from "astro:assets";
 
 const user = Astro.locals.user;
 const year = new Date().getFullYear();
@@ -29,11 +30,11 @@ const columns = [
     <div class="grid gap-10 md:grid-cols-[1.2fr_2fr]">
       <div>
         <div class="flex items-center gap-3">
-          <img
+          <Image
             src="/logo.png"
             alt="Wuxia Dreams"
-            width="36"
-            height="36"
+            width={36}
+            height={36}
             class="h-9 w-9 rounded-md ring-1 ring-border/70"
             loading="lazy"
           />
