@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { novel, chapter, author, novelAuthor } from "@/db/schema";
 import { eq, and, lt, gt, desc, asc, count } from "drizzle-orm";
 import { actions } from "astro:actions";
+import { formatDate } from "@/lib/utils";
 import { ChapterSettings } from "@/components/chapter-settings";
 import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
 
@@ -178,7 +179,27 @@ contentParagraphs =
       <div
         class="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground"
       >
-        <span>{currentChapter.wordCount} words</span>
+        <span class="flex items-center gap-1.5">
+          <svg
+            class="h-4 w-4 opacity-70"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+          {formatDate(currentChapter.createdAt)}
+        </span>
+        <span>•</span>
+        <span class="flex items-center gap-1.5">
+          {currentChapter.wordCount} words
+        </span>
       </div>
 
       <div
@@ -417,7 +438,7 @@ contentParagraphs =
         class="flex flex-col gap-1 rounded-full bg-background/95 p-1.5 backdrop-blur-xl border border-border/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
       >
         <ChapterIndexDrawer
-          client:load
+          client:only="react"
           novelId={novelData.id}
           novelSlug={novelData.slug}
           novelTitle={novelData.title}
@@ -425,7 +446,7 @@ contentParagraphs =
           triggerClassName="!rounded-full !w-10 !h-10 p-0 !bg-transparent hover:!bg-muted/80 text-foreground transition-all duration-200"
           showText={false}
         />
-        <div class="w-6 h-[1px] bg-border/60 mx-auto rounded-full my-0.5"></div>
+        <div class="w-6 h-px bg-border/60 mx-auto rounded-full my-0.5"></div>
         <ChapterSettings
           client:load
           triggerClassName="!rounded-full !w-10 !h-10 p-0 !bg-transparent hover:!bg-muted/80 text-foreground transition-all duration-200"
