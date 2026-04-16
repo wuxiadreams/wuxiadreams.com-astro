@@ -76,15 +76,31 @@ if (!Astro.cookies.has(cookieName)) {
   Astro.cookies.set(cookieName, "1", { maxAge: 3600, path: "/" });
 }
 
+// 使用 count(*) OVER() 可以在一次扫描中拿到列表和总记录数
+const chaptersQuery = db
+  .select({
+    id: chapter.id,
+    title: chapter.title,
+    number: chapter.number,
+    wordCount: chapter.wordCount,
+    createdAt: chapter.createdAt,
+    totalCount: sql<number>`count(*) OVER()`.mapWith(Number),
+  })
+  .from(chapter)
+  .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)))
+  .orderBy(sortOrder === "desc" ? desc(chapter.number) : asc(chapter.number))
+  .limit(pageSize)
+  .offset((currentPage - 1) * pageSize);
+
 // 2. 并行获取关联数据 (作者, 分类, 标签, 章节总数, 章节数据)
 const [
   authorsData,
   categoriesData,
   tagsData,
-  [{ totalChapters }],
-  [firstChapterData],
   chaptersData,
+  [firstChapterData],
 ] = await Promise.all([
+  // 获取作者
   db
     .select({
       id: author.id,
@@ -96,6 +112,7 @@ const [
     .innerJoin(author, eq(novelAuthor.authorId, author.id))
     .where(eq(novelAuthor.novelId, novelData.id)),
 
+  // 获取分类
   db
     .select({
       id: category.id,
@@ -106,6 +123,7 @@ const [
     .innerJoin(category, eq(novelCategory.categoryId, category.id))
     .where(eq(novelCategory.novelId, novelData.id)),
 
+  // 获取标签
   db
     .select({
       id: tag.id,
@@ -116,34 +134,20 @@ const [
     .innerJoin(tag, eq(novelTag.tagId, tag.id))
     .where(eq(novelTag.novelId, novelData.id)),
 
-  db
-    .select({ totalChapters: count() })
-    .from(chapter)
-    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true))),
+  // 执行合并后的章节查询
+  chaptersQuery,
 
+  // 获取第一章数据 (仅查一个字段，用于“开始阅读”按钮)
   db
     .select({ number: chapter.number })
     .from(chapter)
     .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)))
     .orderBy(asc(chapter.number))
     .limit(1),
-
-  db
-    .select({
-      id: chapter.id,
-      title: chapter.title,
-      number: chapter.number,
-      wordCount: chapter.wordCount,
-      createdAt: chapter.createdAt,
-    })
-    .from(chapter)
-    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)))
-    .orderBy(sortOrder === "desc" ? desc(chapter.number) : asc(chapter.number))
-    .limit(pageSize)
-    .offset((currentPage - 1) * pageSize),
 ]);
 
-console.log(authorsData);
+// 提取总章节数, 因为 count(*) OVER() 在每一行都会返回相同的结果
+const totalChapters = chaptersData[0]?.totalCount ?? 0;
 
 // 3. 获取作者相关的其他小说 (最多6本)
 let authorOtherNovels: any[] = [];
@@ -168,7 +172,7 @@ if (authorsData.length > 0) {
     )
     .groupBy(novel.id)
     .orderBy(desc(novel.viewCount))
-    .limit(7); // Fetch 7 to ensure we can show 6 *other* novels
+    .limit(7);
 
   // Filter out the current novel
   authorOtherNovels = authorOtherNovels
