@@ -178,27 +178,6 @@ contentParagraphs =
       <div
         class="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground"
       >
-        <a
-          href={`/novel/${novelData.slug}`}
-          class="hover:text-primary transition-colors"
-        >
-          {novelData.title}
-        </a>
-        <span>•</span>
-        {
-          novelData.authorSlug ? (
-            <a
-              href={`/author/${novelData.authorSlug}`}
-              class="hover:text-primary transition-colors"
-            >
-              {novelData.authorName}{" "}
-              {novelData.authorNameAlt ? `(${novelData.authorNameAlt})` : ""}
-            </a>
-          ) : (
-            <span>Unknown</span>
-          )
-        }
-        <span>•</span>
         <span>{currentChapter.wordCount} words</span>
       </div>
 
