@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 import CreateTagDialog from "./_create";
 import EditTagDialog from "./_edit";
 import DeleteTagDialog from "./_delete";
@@ -43,6 +44,9 @@ export default function TagTable() {
 
   // Delete Confirmation state
   const [deletingTag, setDeletingTag] = useState<TagType | null>(null);
+
+  // Sync state
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const params = {
     page: String(currentPage),
@@ -87,6 +91,26 @@ export default function TagTable() {
     queryClient.invalidateQueries({ queryKey: ["tags"] });
   };
 
+  const handleSyncNovelCount = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await fetch("/api/tags/sync", {
+        method: "POST",
+      });
+      if (res.ok) {
+        toast.success("同步标签关联小说数量成功");
+        handleRefresh();
+      } else {
+        const errorData = (await res.json()) as { error?: string };
+        toast.error(errorData.error || "同步失败");
+      }
+    } catch (error) {
+      toast.error("网络请求错误");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleSort = (column: "createdAt" | "name") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -122,7 +146,21 @@ export default function TagTable() {
             onClick={handleRefresh}
           />
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>新建标签</Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="secondary"
+            onClick={handleSyncNovelCount}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <Spinner className="mr-2 h-4 w-4" />
+            ) : (
+              <RefreshCcw className="mr-2 h-4 w-4" />
+            )}
+            同步关联小说数
+          </Button>
+          <Button onClick={() => setIsCreateOpen(true)}>新建标签</Button>
+        </div>
       </div>
 
       <div className="relative rounded-md border">
@@ -145,6 +183,7 @@ export default function TagTable() {
                 </div>
               </TableHead>
               <TableHead>Slug</TableHead>
+              <TableHead>关联小说数</TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort("createdAt")}
@@ -166,6 +205,7 @@ export default function TagTable() {
                   <TableCell className="text-muted-foreground">
                     {tag.slug}
                   </TableCell>
+                  <TableCell>{tag.novelCount || 0}</TableCell>
                   <TableCell>{formatDate(tag.createdAt)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">

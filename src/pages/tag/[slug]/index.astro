@@ -20,13 +20,8 @@ if (!tagData) {
   return Astro.redirect("/tags");
 }
 
-// 2. 获取该标签下的所有已发布小说总数
-const [{ total }] = await db
-  .select({ total: count() })
-  .from(novelTag)
-  .innerJoin(novel, eq(novelTag.novelId, novel.id))
-  .where(and(eq(novelTag.tagId, tagData.id), eq(novel.published, true)));
-
+// 2. 使用预先计算好的小说数量
+const total = tagData.novelCount;
 const totalPages = Math.ceil(total / pageSize);
 
 // 3. 获取当前页的已发布小说

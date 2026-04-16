@@ -85,12 +85,10 @@ const popularTags = await db
     id: schema.tag.id,
     name: schema.tag.name,
     slug: schema.tag.slug,
-    count: sql<number>`count(${schema.novelTag.novelId})`,
+    count: schema.tag.novelCount,
   })
   .from(schema.tag)
-  .leftJoin(schema.novelTag, eq(schema.tag.id, schema.novelTag.tagId))
-  .groupBy(schema.tag.id)
-  .orderBy(desc(sql<number>`count(${schema.novelTag.novelId})`))
+  .orderBy(desc(schema.tag.novelCount))
   .limit(10);
 
 const trendingCategories = await db.query.category.findMany({

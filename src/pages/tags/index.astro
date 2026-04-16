@@ -7,24 +7,15 @@ import * as schema from "@/db/schema";
 
 const db = drizzle(env.DB, { schema });
 
-// Fetch all tags and join with novelTag and novel to get published novel count
+// Fetch all tags and use pre-calculated novelCount
 const allTags = await db
   .select({
     id: schema.tag.id,
     name: schema.tag.name,
     slug: schema.tag.slug,
-    novelCount: count(schema.novel.id),
+    novelCount: schema.tag.novelCount,
   })
   .from(schema.tag)
-  .leftJoin(schema.novelTag, eq(schema.tag.id, schema.novelTag.tagId))
-  .leftJoin(
-    schema.novel,
-    and(
-      eq(schema.novelTag.novelId, schema.novel.id),
-      eq(schema.novel.published, true),
-    ),
-  )
-  .groupBy(schema.tag.id)
   .orderBy(schema.tag.name);
 
 // Group tags by first letter
