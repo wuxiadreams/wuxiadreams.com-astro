@@ -2,7 +2,7 @@
 import Layout from "@/layouts/layout.astro";
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 import * as schema from "@/db/schema";
 import { formatDate } from "@/lib/utils";
 import { RemoveLibraryButton } from "@/components/remove-library-button";
@@ -17,6 +17,24 @@ if (!session || !user) {
 
 const db = drizzle(env.DB, { schema });
 
+const url = new URL(Astro.request.url);
+const currentPage = parseInt(url.searchParams.get("page") || "1");
+const pageSize = 20;
+
+const [{ value: totalNovels }] = await db
+  .select({ value: count() })
+  .from(schema.userLibrary)
+  .where(eq(schema.userLibrary.userId, user.id));
+
+const totalPages = Math.max(1, Math.ceil(totalNovels / pageSize));
+
+// Generate pagination links
+const getPageUrl = (page: number) => {
+  const newUrl = new URL(url);
+  newUrl.searchParams.set("page", page.toString());
+  return newUrl.pathname + newUrl.search;
+};
+
 // Fetch user's saved novels
 const userLibrary = await db
   .select({
@@ -26,7 +44,9 @@ const userLibrary = await db
   .from(schema.userLibrary)
   .innerJoin(schema.novel, eq(schema.userLibrary.novelId, schema.novel.id))
   .where(eq(schema.userLibrary.userId, user.id))
-  .orderBy(desc(schema.userLibrary.createdAt));
+  .orderBy(desc(schema.userLibrary.createdAt))
+  .limit(pageSize)
+  .offset((currentPage - 1) * pageSize);
 
 const r2Domain = env.R2_DOMAIN;
 ---
@@ -42,7 +62,7 @@ const r2Domain = env.R2_DOMAIN;
 
     {
       userLibrary.length > 0 ? (
-        <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div class="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {userLibrary.map(({ novel, addedAt }) => (
             <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
               <RemoveLibraryButton
@@ -149,6 +169,36 @@ const r2Domain = env.R2_DOMAIN;
             class="mt-6 inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             Browse Novels
+          </a>
+        </div>
+      )
+    }
+
+    {
+      totalPages > 1 && (
+        <div class="mt-12 flex items-center justify-center gap-2">
+          <a
+            href={getPageUrl(Math.max(1, currentPage - 1))}
+            class:list={[
+              "inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted",
+              currentPage === 1 && "pointer-events-none opacity-50",
+            ]}
+          >
+            Previous
+          </a>
+          <div class="text-sm text-muted-foreground mx-4">
+            Page{" "}
+            <span class="font-semibold text-foreground">{currentPage}</span> of{" "}
+            {totalPages}
+          </div>
+          <a
+            href={getPageUrl(Math.min(totalPages, currentPage + 1))}
+            class:list={[
+              "inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted",
+              currentPage === totalPages && "pointer-events-none opacity-50",
+            ]}
+          >
+            Next
           </a>
         </div>
       )
