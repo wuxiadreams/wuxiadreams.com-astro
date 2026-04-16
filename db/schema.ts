@@ -1,7 +1,7 @@
 // src/db/schema.ts
 import { sqliteTable, primaryKey, index, check } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { sql, relations } from "drizzle-orm";
+import { sql, relations, desc } from "drizzle-orm";
 
 export const user = sqliteTable("user", {
   id: t
@@ -154,7 +154,7 @@ export const novel = sqliteTable(
     index("novel_review_count_idx").on(table.reviewCount),
     index("novel_published_view_count_idx").on(
       table.published,
-      table.viewCount,
+      desc(table.viewCount),
     ),
     check("bookmark_count_check", sql`${table.bookmarkCount} >= 0`),
   ],
