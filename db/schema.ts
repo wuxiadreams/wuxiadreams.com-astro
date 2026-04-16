@@ -290,6 +290,8 @@ export const chapter = sqliteTable(
   (table) => [
     index("chapter_novel_id_idx").on(table.novelId),
     index("chapter_published_idx").on(table.published),
+    // 符合索引，加速统计已发布章节数
+    index("chapter_novel_published_idx").on(table.novelId, table.published),
     // 主索引，用于快速查询章节
     index("idx_chapter_main").on(table.novelId, table.published, table.number),
   ],

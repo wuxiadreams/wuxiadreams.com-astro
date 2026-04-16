@@ -1,0 +1,1 @@
+CREATE INDEX `chapter_novel_published_idx` ON `chapter` (`novel_id`,`published`);
