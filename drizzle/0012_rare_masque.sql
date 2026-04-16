@@ -1,0 +1,1 @@
+CREATE INDEX `novel_published_view_count_idx` ON `novel` (`published`,`view_count`);
