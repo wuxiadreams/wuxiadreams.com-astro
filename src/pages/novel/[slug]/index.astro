@@ -19,6 +19,7 @@ import { eq, asc, and, count, desc, sql } from "drizzle-orm";
 const { slug } = Astro.params;
 const url = new URL(Astro.request.url);
 const currentPage = parseInt(url.searchParams.get("page") || "1");
+const sortOrder = url.searchParams.get("sort") === "desc" ? "desc" : "asc";
 const pageSize = 100;
 const r2Domain = env.R2_DOMAIN;
 
@@ -80,6 +81,7 @@ const [
   categoriesData,
   tagsData,
   [{ totalChapters }],
+  [firstChapterData],
   chaptersData,
 ] = await Promise.all([
   db
@@ -119,6 +121,13 @@ const [
     .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true))),
 
   db
+    .select({ number: chapter.number })
+    .from(chapter)
+    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)))
+    .orderBy(asc(chapter.number))
+    .limit(1),
+
+  db
     .select({
       id: chapter.id,
       title: chapter.title,
@@ -128,7 +137,7 @@ const [
     })
     .from(chapter)
     .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)))
-    .orderBy(asc(chapter.number))
+    .orderBy(sortOrder === "desc" ? desc(chapter.number) : asc(chapter.number))
     .limit(pageSize)
     .offset((currentPage - 1) * pageSize),
 ]);
@@ -325,9 +334,9 @@ const r2_domain = env.R2_DOMAIN;
             {/* 操作按钮区 */}
             <div class="mt-6 flex flex-wrap gap-3">
               {
-                chaptersData.length > 0 ? (
+                firstChapterData ? (
                   <a
-                    href={`/novel/${novelData.slug}/chapter-${chaptersData[0].number}`}
+                    href={`/novel/${novelData.slug}/chapter-${firstChapterData.number}`}
                     class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                   >
                     Start Reading
@@ -366,11 +375,51 @@ const r2_domain = env.R2_DOMAIN;
 
         {/* 章节列表区 */}
         <section class="scroll-mt-24">
-          <div class="mb-6 flex items-center justify-between">
+          <div
+            class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
             <h3 class="text-xl font-bold text-foreground">Chapters</h3>
-            <span class="text-sm text-muted-foreground"
-              >{chaptersData.length} Chapters</span
+
+            <div
+              class="flex items-center rounded-lg border border-border/60 bg-muted/30 p-1"
             >
+              <a
+                href={`?page=1&sort=asc`}
+                class={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${sortOrder === "asc" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <svg
+                  class="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                  ></path></svg
+                >
+                Asc
+              </a>
+              <a
+                href={`?page=1&sort=desc`}
+                class={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${sortOrder === "desc" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <svg
+                  class="h-3.5 w-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  ><path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+                  ></path></svg
+                >
+                Desc
+              </a>
+            </div>
           </div>
 
           {
@@ -446,7 +495,7 @@ const r2_domain = env.R2_DOMAIN;
               categoriesData.length > 0 && (
                 <div>
                   <div class="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Categories
+                    Genres
                   </div>
                   <div class="flex flex-wrap gap-2">
                     {categoriesData.map((cat) => (
