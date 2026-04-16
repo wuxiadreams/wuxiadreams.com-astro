@@ -11,8 +11,8 @@
     "preview": "astro preview --port 5173",
     "db:gen": "drizzle-kit generate",
     "db:studio": "LOCAL_DB_PATH=$(ls -t .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite | grep -v metadata.sqlite | head -n 1) drizzle-kit studio --config drizzle.config.ts",
-    "db:push:local": "wrangler d1 execute wuxiadreams --local --file=$(ls -t drizzle/*.sql | head -n 1)",
-    "db:push:prod": "wrangler d1 execute wuxiadreams --remote --file=$(ls -t drizzle/*.sql | head -n 1)",
+    "db:push:local": "wrangler d1 migrations apply wuxiadreams --local",
+    "db:push:prod": "wrangler d1 migrations apply wuxiadreams --remote",
     "astro": "astro",
     "generate-types": "wrangler types"
   },
