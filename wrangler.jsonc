@@ -11,7 +11,7 @@
     "enabled": true,
   },
   "vars": {
-    "BETTER_AUTH_URL": "https://astro.wuxiadreams.workers.dev",
+    "BETTER_AUTH_URL": "https://wuxiadreams.com",
     "R2_DOMAIN": "cdn.wuxiadreams.com",
     "R2_REGION": "auto",
     "R2_NOVELS_BUCKET": "novels",
@@ -23,6 +23,12 @@
       "database_name": "wuxiadreams",
       "database_id": "99a42d30-aed0-4776-919e-e7e884610c88",
       "migrations_dir": "drizzle",
+    },
+  ],
+  "routes": [
+    {
+      "pattern": "wuxiadreams.com",
+      "custom_domain": true,
     },
   ],
 }

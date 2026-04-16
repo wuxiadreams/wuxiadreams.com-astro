@@ -1,7 +1,7 @@
 // src/db/schema.ts
 import { sqliteTable, primaryKey, index, check } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 
 export const user = sqliteTable("user", {
   id: t
@@ -156,22 +156,27 @@ export const novel = sqliteTable(
   ],
 );
 
-export const author = sqliteTable("author", {
-  id: t
-    .text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: t.text("name").notNull().unique(),
-  nameAlt: t.text("name_alt").notNull().unique(),
-  slug: t.text("slug").notNull().unique(),
-  country: t.text("country").notNull().default(""),
-  isPinned: t
-    .integer("is_pinned", { mode: "boolean" })
-    .notNull()
-    .default(false),
-  createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
-  updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-});
+export const author = sqliteTable(
+  "author",
+  {
+    id: t
+      .text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: t.text("name").notNull().unique(),
+    nameAlt: t.text("name_alt").notNull().unique(),
+    slug: t.text("slug").notNull().unique(),
+    country: t.text("country").notNull().default(""),
+    isPinned: t
+      .integer("is_pinned", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    novelCount: t.integer("novel_count").notNull().default(0),
+    createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [index("idx_author_name").on(table.name)],
+);
 
 export const novelAuthor = sqliteTable(
   "novel_author",
@@ -189,6 +194,8 @@ export const novelAuthor = sqliteTable(
   (table) => [
     primaryKey({ columns: [table.novelId, table.authorId] }),
     index("novel_author_author_id_idx").on(table.authorId),
+    // 联合索引：加速统计作者下的小说数
+    index("novel_author_aid_nid_idx").on(table.authorId, table.novelId),
   ],
 );
 
@@ -227,6 +234,7 @@ export const tag = sqliteTable("tag", {
   id: t.integer("id").primaryKey(),
   name: t.text("name").notNull().unique(),
   slug: t.text("slug").notNull().unique(),
+  novelCount: t.integer("novel_count").notNull().default(0),
   createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
@@ -247,6 +255,8 @@ export const novelTag = sqliteTable(
   (table) => [
     primaryKey({ columns: [table.novelId, table.tagId] }),
     index("novel_tag_tag_id_idx").on(table.tagId),
+    index("novel_tag_tag_id_novel_id_idx").on(table.tagId, table.novelId),
+    index("novel_tag_novel_id_tag_id_idx").on(table.novelId, table.tagId),
   ],
 );
 
@@ -281,7 +291,55 @@ export const chapter = sqliteTable(
   ],
 );
 
-import { relations } from "drizzle-orm";
+export const dailyStat = sqliteTable(
+  "daily_stat",
+  {
+    novelId: t
+      .text("novel_id")
+      .notNull()
+      .references(() => novel.id, { onDelete: "cascade" }),
+    date: t.text("date").notNull(),
+    viewCount: t.integer("view_count").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({ columns: [table.novelId, table.date] }),
+    index("idx_daily_stat_date").on(table.date),
+  ],
+);
+
+export const ranking = sqliteTable(
+  "ranking",
+  {
+    type: t.text("type").notNull(),
+    novelId: t.text("novel_id").notNull(),
+    rank: t.integer("rank").notNull(),
+    score: t.real("score").notNull().default(0),
+    updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.type, table.novelId] }),
+    index("type_rank_index").on(table.type, table.rank),
+  ],
+);
+
+export const userLibrary = sqliteTable(
+  "user_library",
+  {
+    novelId: t
+      .text("novel_id")
+      .notNull()
+      .references(() => novel.id, { onDelete: "cascade" }),
+    userId: t
+      .text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.novelId] }),
+    index("user_library_novel_id_idx").on(table.novelId),
+  ],
+);
 
 export const novelRelations = relations(novel, ({ many }) => ({
   chapters: many(chapter),
@@ -341,53 +399,3 @@ export const novelCategoryRelations = relations(novelCategory, ({ one }) => ({
     references: [category.id],
   }),
 }));
-
-export const dailyStat = sqliteTable(
-  "daily_stat",
-  {
-    novelId: t
-      .text("novel_id")
-      .notNull()
-      .references(() => novel.id, { onDelete: "cascade" }),
-    date: t.text("date").notNull(),
-    viewCount: t.integer("view_count").notNull().default(0),
-  },
-  (table) => [
-    primaryKey({ columns: [table.novelId, table.date] }),
-    index("idx_daily_stat_date").on(table.date),
-  ],
-);
-
-export const ranking = sqliteTable(
-  "ranking",
-  {
-    type: t.text("type").notNull(),
-    novelId: t.text("novel_id").notNull(),
-    rank: t.integer("rank").notNull(),
-    score: t.real("score").notNull().default(0),
-    updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
-  },
-  (table) => [
-    primaryKey({ columns: [table.type, table.novelId] }),
-    index("type_rank_index").on(table.type, table.rank),
-  ],
-);
-
-export const userLibrary = sqliteTable(
-  "user_library",
-  {
-    novelId: t
-      .text("novel_id")
-      .notNull()
-      .references(() => novel.id, { onDelete: "cascade" }),
-    userId: t
-      .text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
-  },
-  (table) => [
-    primaryKey({ columns: [table.userId, table.novelId] }),
-    index("user_library_novel_id_idx").on(table.novelId),
-  ],
-);

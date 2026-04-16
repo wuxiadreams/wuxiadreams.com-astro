@@ -71,6 +71,20 @@
       "when": 1776257091037,
       "tag": "0009_keen_mother_askani",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1776322182911,
+      "tag": "0010_violet_otto_octavius",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1776322633915,
+      "tag": "0011_blushing_preak",
+      "breakpoints": true
     }
   ]
 }
