@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 import CreateAuthorDialog from "./_create";
 import EditAuthorDialog from "./_edit";
 import DeleteAuthorDialog from "./_delete";
@@ -34,7 +35,9 @@ export default function AuthorTable() {
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
-  const [sortBy, setSortBy] = useState<"createdAt" | "name">("createdAt");
+  const [sortBy, setSortBy] = useState<"createdAt" | "name" | "novelCount">(
+    "createdAt",
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Dialogs state
@@ -44,6 +47,9 @@ export default function AuthorTable() {
 
   // Delete Confirmation state
   const [deletingAuthor, setDeletingAuthor] = useState<AuthorType | null>(null);
+
+  // Sync state
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const params = {
     page: String(currentPage),
@@ -88,7 +94,27 @@ export default function AuthorTable() {
     queryClient.invalidateQueries({ queryKey: ["authors"] });
   };
 
-  const handleSort = (column: "createdAt" | "name") => {
+  const handleSyncNovelCount = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await fetch("/api/authors/sync", {
+        method: "POST",
+      });
+      if (res.ok) {
+        toast.success("同步作者关联小说数量成功");
+        handleRefresh();
+      } else {
+        const errorData = (await res.json()) as { error?: string };
+        toast.error(errorData.error || "同步失败");
+      }
+    } catch (error) {
+      toast.error("网络请求错误");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSort = (column: "createdAt" | "name" | "novelCount") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -97,7 +123,7 @@ export default function AuthorTable() {
     }
   };
 
-  const renderSortIcon = (column: "createdAt" | "name") => {
+  const renderSortIcon = (column: "createdAt" | "name" | "novelCount") => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />;
     return sortOrder === "asc" ? (
@@ -123,7 +149,21 @@ export default function AuthorTable() {
             onClick={handleRefresh}
           />
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>新建作者</Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="secondary"
+            onClick={handleSyncNovelCount}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <Spinner className="mr-2 h-4 w-4" />
+            ) : (
+              <RefreshCcw className="mr-2 h-4 w-4" />
+            )}
+            同步关联小说数
+          </Button>
+          <Button onClick={() => setIsCreateOpen(true)}>新建作者</Button>
+        </div>
       </div>
 
       <div className="relative rounded-md border">
@@ -146,6 +186,15 @@ export default function AuthorTable() {
               </TableHead>
               <TableHead>别名</TableHead>
               <TableHead>Slug</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("novelCount")}
+              >
+                <div className="flex items-center">
+                  关联小说数
+                  {renderSortIcon("novelCount")}
+                </div>
+              </TableHead>
               <TableHead>国家</TableHead>
               <TableHead>置顶</TableHead>
               <TableHead
@@ -164,11 +213,21 @@ export default function AuthorTable() {
             {authors.length > 0 ? (
               authors.map((author) => (
                 <TableRow key={author.id}>
-                  <TableCell className="font-medium">{author.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <a
+                      href={`/author/${author.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline hover:text-primary transition-colors"
+                    >
+                      {author.name}
+                    </a>
+                  </TableCell>
                   <TableCell>{author.nameAlt}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {author.slug}
                   </TableCell>
+                  <TableCell>{author.novelCount || 0}</TableCell>
                   <TableCell>{author.country}</TableCell>
                   <TableCell>
                     {author.isPinned ? (

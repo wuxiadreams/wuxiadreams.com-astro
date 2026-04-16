@@ -34,7 +34,9 @@ export default function TagTable() {
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
-  const [sortBy, setSortBy] = useState<"createdAt" | "name">("createdAt");
+  const [sortBy, setSortBy] = useState<"createdAt" | "name" | "novelCount">(
+    "createdAt",
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Dialogs state
@@ -111,7 +113,7 @@ export default function TagTable() {
     }
   };
 
-  const handleSort = (column: "createdAt" | "name") => {
+  const handleSort = (column: "createdAt" | "name" | "novelCount") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -120,7 +122,7 @@ export default function TagTable() {
     }
   };
 
-  const renderSortIcon = (column: "createdAt" | "name") => {
+  const renderSortIcon = (column: "createdAt" | "name" | "novelCount") => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />;
     return sortOrder === "asc" ? (
@@ -183,7 +185,15 @@ export default function TagTable() {
                 </div>
               </TableHead>
               <TableHead>Slug</TableHead>
-              <TableHead>关联小说数</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("novelCount")}
+              >
+                <div className="flex items-center">
+                  关联小说数
+                  {renderSortIcon("novelCount")}
+                </div>
+              </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort("createdAt")}
@@ -201,7 +211,16 @@ export default function TagTable() {
               tags.map((tag) => (
                 <TableRow key={tag.id}>
                   <TableCell>{tag.id}</TableCell>
-                  <TableCell className="font-medium">{tag.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <a
+                      href={`/tag/${tag.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline hover:text-primary transition-colors"
+                    >
+                      {tag.name}
+                    </a>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {tag.slug}
                   </TableCell>

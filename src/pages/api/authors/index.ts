@@ -44,6 +44,8 @@ export async function GET({
   let orderByColumn;
   if (sortBy === "name") {
     orderByColumn = sortOrder === "asc" ? asc(author.name) : desc(author.name);
+  } else if (sortBy === "novelCount") {
+    orderByColumn = sortOrder === "asc" ? asc(author.novelCount) : desc(author.novelCount);
   } else {
     // Default to createdAt
     orderByColumn =

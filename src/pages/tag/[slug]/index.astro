@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { db } from "@/lib/db";
 import { tag, novelTag, novel } from "@/db/schema";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 const { slug } = Astro.params;
 const page = Number(Astro.url.searchParams.get("page")) || 1;

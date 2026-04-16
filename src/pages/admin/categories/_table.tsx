@@ -190,7 +190,16 @@ export default function CategoryTable() {
               categories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>{category.id}</TableCell>
-                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <a
+                      href={`/genre/${category.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline hover:text-primary transition-colors"
+                    >
+                      {category.name}
+                    </a>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {category.slug}
                   </TableCell>

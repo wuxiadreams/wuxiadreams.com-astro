@@ -40,6 +40,8 @@ export async function GET({
   let orderByColumn;
   if (sortBy === "name") {
     orderByColumn = sortOrder === "asc" ? asc(tag.name) : desc(tag.name);
+  } else if (sortBy === "novelCount") {
+    orderByColumn = sortOrder === "asc" ? asc(tag.novelCount) : desc(tag.novelCount);
   } else {
     // Default to createdAt
     orderByColumn =

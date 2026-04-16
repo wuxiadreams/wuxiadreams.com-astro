@@ -7,21 +7,16 @@ import * as schema from "@/db/schema";
 
 const db = drizzle(env.DB, { schema });
 
-// Fetch all authors and join with novelAuthor to get novel count
+// Fetch all authors and use pre-calculated novelCount
 const allAuthors = await db
   .select({
     id: schema.author.id,
     name: schema.author.name,
     slug: schema.author.slug,
     country: schema.author.country,
-    novelCount: count(schema.novelAuthor.novelId),
+    novelCount: schema.author.novelCount,
   })
   .from(schema.author)
-  .leftJoin(
-    schema.novelAuthor,
-    eq(schema.author.id, schema.novelAuthor.authorId),
-  )
-  .groupBy(schema.author.id)
   .orderBy(schema.author.name);
 
 // Group authors by first letter
