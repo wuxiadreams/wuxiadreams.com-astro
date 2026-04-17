@@ -188,7 +188,11 @@ export default function NovelTable() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          <a href="/admin/novels/create">
+          <a
+            href="/admin/novels/create"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Button>新建小说</Button>
           </a>
         </div>

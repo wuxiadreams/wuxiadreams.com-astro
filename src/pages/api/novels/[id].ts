@@ -4,8 +4,9 @@ import { db } from "@/lib/db";
 import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
 import { copySingleFile } from "@/lib/r2";
 import { actions } from "astro:actions";
+import type { APIContext } from "astro";
 
-export async function PUT(context) {
+export async function PUT(context: APIContext) {
   const { locals, request, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
@@ -51,6 +52,8 @@ export async function PUT(context) {
         reviewCount:
           reviewCount !== undefined ? Number(reviewCount) : undefined,
         score: score !== undefined ? Number(score) : undefined,
+        chapterCount:
+          chapterCount !== undefined ? Number(chapterCount) : undefined,
         updatedAt: new Date(),
       })
       .where(eq(novel.id, novelId))
@@ -164,7 +167,7 @@ export async function PUT(context) {
   }
 }
 
-export async function DELETE(context) {
+export async function DELETE(context: APIContext) {
   const { locals, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
@@ -203,7 +206,9 @@ export async function DELETE(context) {
 
     try {
       if (deletedNovel[0].cover) {
-        await context.callAction(actions.cover.delete, deletedNovel[0].cover);
+        const fd = new FormData();
+        fd.append("fileKey", deletedNovel[0].cover);
+        await context.callAction(actions.cover.delete, fd as any);
       }
       await context.callAction(actions.chapterManagement.deleteChapterFiles, {
         novelId,

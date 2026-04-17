@@ -37,6 +37,7 @@ export async function POST({
       categories,
       score,
       reviewCount,
+      chapterCount,
       ...otherData
     } = body;
 
@@ -60,6 +61,7 @@ export async function POST({
         status,
         score: score !== undefined ? Number(score) : 0,
         reviewCount: reviewCount !== undefined ? Number(reviewCount) : 0,
+        chapterCount: chapterCount !== undefined ? Number(chapterCount) : 0,
         ...otherData,
         createdAt: new Date(),
         updatedAt: new Date(),

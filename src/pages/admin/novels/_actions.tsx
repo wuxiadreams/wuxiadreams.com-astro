@@ -136,6 +136,8 @@ export default function NovelActions({
           <DropdownMenuItem asChild>
             <a
               href={`/admin/novels/${novel.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="cursor-pointer flex items-center w-full"
             >
               <Edit className="mr-2 h-4 w-4" />
