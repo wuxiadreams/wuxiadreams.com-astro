@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ site, cache }) => {
     .from(novel)
     .where(eq(novel.published, true));
 
-  const baseUrl = site ? site.href : "https://wuxiadreams.com";
+  const baseUrl = "https://wuxiadreams.com/";
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
