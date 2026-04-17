@@ -181,7 +181,7 @@ Astro.cache.set({
           <a
             href={`/novel/${novelData.slug}/chapter-${prevChapter.number}`}
             class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted"
-            data-astro-preftech
+            data-astro-prefetch="viewport"
           >
             <svg
               class="mr-2 h-4 w-4"
@@ -227,7 +227,7 @@ Astro.cache.set({
             <a
               href={`/novel/${novelData.slug}/chapter-${nextChapter.number}`}
               class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-card px-4 text-sm font-medium transition hover:bg-muted"
-              data-astro-preftech
+              data-astro-prefetch="viewport"
             >
               Next
               <svg
