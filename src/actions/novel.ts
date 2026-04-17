@@ -162,12 +162,12 @@ export const novelActions = {
             status: novel.status,
             chapterCount: novel.chapterCount,
           })
-          .from(novelAuthor)
-          .innerJoin(novel, eq(novelAuthor.novelId, novel.id))
+          .from(novel)
+          .innerJoin(novelAuthor, eq(novel.id, novelAuthor.novelId))
           .where(
             and(
-              eq(novelAuthor.authorId, authorsData[0].id),
               eq(novel.published, true),
+              eq(novelAuthor.authorId, authorsData[0].id),
             ),
           )
           .orderBy(desc(novel.viewCount))
