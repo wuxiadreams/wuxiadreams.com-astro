@@ -135,9 +135,7 @@ export default function NovelActions({
           <DropdownMenuLabel>操作</DropdownMenuLabel>
           <DropdownMenuItem asChild>
             <a
-              href={`/admin/novels/edit/${novel.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={`/admin/novels/${novel.id}`}
               className="cursor-pointer flex items-center w-full"
             >
               <Edit className="mr-2 h-4 w-4" />

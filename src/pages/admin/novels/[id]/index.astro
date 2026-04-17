@@ -1,0 +1,81 @@
+---
+import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
+import AdminLayout from "@/layouts/admin-layout.astro";
+import NovelForm from "../_components/novel-form";
+import { db } from "@/lib/db";
+import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+// Admin check
+const user = Astro.locals.user;
+const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
+if (!user || !adminEmails.includes(user.email)) {
+  return Astro.redirect("/");
+}
+const r2Domain = env.R2_DOMAIN;
+
+const { id } = Astro.params;
+if (!id) {
+  return Astro.redirect("/admin/novels");
+}
+
+// Fetch novel data
+const novelData = await db.query.novel.findFirst({
+  where: eq(novel.id, id),
+});
+
+if (!novelData) {
+  return Astro.redirect("/admin/novels");
+}
+
+// Fetch relationships
+const authorMapping = await db.query.novelAuthor.findFirst({
+  where: eq(novelAuthor.novelId, id),
+});
+
+const tagMappings = await db.query.novelTag.findMany({
+  where: eq(novelTag.novelId, id),
+});
+
+const categoryMappings = await db.query.novelCategory.findMany({
+  where: eq(novelCategory.novelId, id),
+});
+
+const initialData = {
+  ...novelData,
+  status: novelData.status as "ongoing" | "completed",
+  cover: novelData.cover || "",
+  synopsis: novelData.synopsis || "",
+  officialLink: novelData.officialLink || "",
+  translatedLink: novelData.translatedLink || "",
+  authorId: authorMapping?.authorId || "",
+  tags: tagMappings.map((t) => String(t.tagId)),
+  categories: categoryMappings.map((c) => String(c.categoryId)),
+};
+---
+
+<AdminLayout title={`编辑小说: ${novelData.title}`}>
+  <div class="flex flex-col gap-6">
+    <div class="flex items-center gap-4">
+      <a href="/admin/novels">
+        <Button variant="outline" size="icon" className="h-8 w-8">
+          <ArrowLeft className="h-4 w-4" />
+          <span class="sr-only">返回列表</span>
+        </Button>
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">编辑小说</h1>
+        <p class="text-muted-foreground">修改小说基本信息与章节</p>
+      </div>
+    </div>
+
+    <NovelForm 
+      r2Domain={r2Domain} 
+      initialData={initialData} 
+      novelId={id} 
+      client:only="react" 
+    />
+  </div>
+</AdminLayout>

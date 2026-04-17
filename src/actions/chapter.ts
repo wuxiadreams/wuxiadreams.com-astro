@@ -4,7 +4,21 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { R2, R2_NOVELS_BUCKET } from "@/lib/r2";
 import { db } from "@/lib/db";
 import { chapter as chapterSchema, novel } from "@/db/schema";
-import { eq, and, asc, desc, lt, gt, count } from "drizzle-orm";
+import { eq, and, asc, desc, lt, gt } from "drizzle-orm";
+import { env } from "cloudflare:workers";
+
+// Helper for admin verification
+async function getAuthenticatedAdmin(locals: App.Locals) {
+  const { user } = locals;
+  const email = user?.email;
+  const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
+
+  if (!email || !adminEmails.includes(email || "")) {
+    throw new Error("Unauthorized");
+  }
+
+  return user;
+}
 
 export const chapter = {
   fetchChapterContent: defineAction({

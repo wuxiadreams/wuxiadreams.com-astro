@@ -115,7 +115,7 @@ export default function PostTable() {
             onClick={handleRefresh}
           />
         </div>
-        <a href="/admin/posts/create" target="_blank" rel="noopener noreferrer">
+        <a href="/admin/posts/create">
           <Button>新建文章</Button>
         </a>
       </div>

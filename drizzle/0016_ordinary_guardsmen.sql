@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `chapter_novel_id_number_unique` ON `chapter` (`novel_id`,`number`);

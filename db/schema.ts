@@ -1,5 +1,11 @@
 // src/db/schema.ts
-import { sqliteTable, primaryKey, index, check } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  primaryKey,
+  index,
+  uniqueIndex,
+  check,
+} from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
 import { sql, relations, desc } from "drizzle-orm";
 
@@ -297,6 +303,10 @@ export const chapter = sqliteTable(
     updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => [
+    uniqueIndex("chapter_novel_id_number_unique").on(
+      table.novelId,
+      table.number,
+    ),
     index("chapter_novel_id_idx").on(table.novelId),
     index("chapter_published_idx").on(table.published),
     // 符合索引，加速统计已发布章节数

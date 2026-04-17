@@ -1,8 +1,9 @@
 import { env } from "cloudflare:workers";
-import { desc, asc, count, or, like } from "drizzle-orm";
+import { desc, asc, count, or, like, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { novel, novelAuthor, author } from "@/db/schema";
+import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
 import type { PaginatedResponse } from "../users/index";
+import { copySingleFile } from "@/lib/r2";
 
 export type NovelType = typeof novel.$inferSelect;
 export type NovelListResponse = PaginatedResponse<NovelType>;
@@ -26,7 +27,18 @@ export async function POST({
 
   try {
     const body = (await request.json()) as Record<string, any>;
-    const { title, titleAlt, slug, authorId, status, ...otherData } = body;
+    const {
+      title,
+      titleAlt,
+      slug,
+      authorId,
+      status,
+      tags,
+      categories,
+      score,
+      reviewCount,
+      ...otherData
+    } = body;
 
     if (!title || !titleAlt || !slug || !status) {
       return new Response(
@@ -46,19 +58,80 @@ export async function POST({
         titleAlt,
         slug,
         status,
+        score: score !== undefined ? Number(score) : 0,
+        reviewCount: reviewCount !== undefined ? Number(reviewCount) : 0,
         ...otherData,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
 
-    // 2. Map author to novel if authorId is provided
-    if (authorId && newNovel[0]) {
-      await db.insert(novelAuthor).values({
-        novelId: newNovel[0].id,
-        authorId,
-        createdAt: new Date(),
-      });
+    const novelId = newNovel[0]?.id;
+
+    if (novelId) {
+      // 2. Map author to novel if authorId is provided
+      if (authorId) {
+        await db.insert(novelAuthor).values({
+          novelId,
+          authorId,
+          createdAt: new Date(),
+        });
+      }
+
+      // 3. Map tags
+      if (Array.isArray(tags) && tags.length > 0) {
+        const tagValues = tags.map((tagId) => ({
+          novelId,
+          tagId: Number(tagId),
+          createdAt: new Date(),
+        }));
+        await db.insert(novelTag).values(tagValues);
+      }
+
+      // 4. Map categories
+      if (Array.isArray(categories) && categories.length > 0) {
+        const categoryValues = categories.map((categoryId) => ({
+          novelId,
+          categoryId: Number(categoryId),
+          createdAt: new Date(),
+        }));
+        await db.insert(novelCategory).values(categoryValues);
+      }
+
+      // 5. Handle cover image relocation
+      let finalCover = otherData.cover;
+      if (otherData.cover && otherData.cover.startsWith("temp/")) {
+        const fileExtension = otherData.cover.split(".").pop();
+        const sourceKey = otherData.cover;
+        const destinationKey = `covers/${novelId}/cover.${fileExtension}`;
+
+        const { error } = await copySingleFile({
+          bucket: env.R2_ASSETS_BUCKET!,
+          source: `${env.R2_ASSETS_BUCKET}/${sourceKey}`,
+          destination: destinationKey,
+          contentType: `image/${fileExtension}`,
+          cacheControl: "public, max-age=31536000, immutable",
+        });
+
+        if (!error) {
+          finalCover = destinationKey;
+          // Update novel record with new cover path
+          await db
+            .update(novel)
+            .set({ cover: finalCover })
+            .where(eq(novel.id, novelId));
+        } else {
+          console.error("Failed to copy cover image:", error);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ ...newNovel[0], cover: finalCover }),
+        {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     return new Response(JSON.stringify(newNovel[0]), {
@@ -111,7 +184,8 @@ export async function GET({
   if (sortBy === "title") {
     orderByColumn = sortOrder === "asc" ? asc(novel.title) : desc(novel.title);
   } else if (sortBy === "chapterCount") {
-    orderByColumn = sortOrder === "asc" ? asc(novel.chapterCount) : desc(novel.chapterCount);
+    orderByColumn =
+      sortOrder === "asc" ? asc(novel.chapterCount) : desc(novel.chapterCount);
   } else {
     // Default to createdAt
     orderByColumn =
