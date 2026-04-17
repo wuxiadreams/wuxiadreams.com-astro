@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 
 export const GET: APIRoute = async ({ cache }) => {
   cache.set({
-    maxAge: 0,
+    maxAge: 60 * 60 * 24 * 7,
     tags: ["sitemap"],
   });
 
