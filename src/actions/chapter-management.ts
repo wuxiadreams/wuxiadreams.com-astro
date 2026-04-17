@@ -19,7 +19,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { db } from "@/lib/db";
 import { chapter as chapterSchema, novel } from "@/db/schema";
-import { eq, and, asc, desc, count } from "drizzle-orm";
+import { eq, and, asc, desc, count, sql } from "drizzle-orm";
 
 // Helper for admin verification
 async function getAuthenticatedAdmin(locals: App.Locals) {
@@ -190,6 +190,15 @@ export const chapterManagement = {
       if (allStatements.length > 0) {
         try {
           await db.batch(allStatements as any);
+
+          // 更新小说的章节数量
+          await db
+            .update(novel)
+            .set({
+              chapterCount: sql`${novel.chapterCount} + ${chaptersData.length}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(novel.id, novelId));
         } catch (e) {
           const errorMsg = e instanceof Error ? e.message : String(e);
           throw new Error(`Database transaction failed: ${errorMsg}`);
@@ -356,6 +365,15 @@ export const chapterManagement = {
       }
 
       await db.delete(chapterSchema).where(eq(chapterSchema.id, chapterId));
+
+      // 删除章节后，直接将小说表的章节数量减1
+      await db
+        .update(novel)
+        .set({
+          chapterCount: sql`${novel.chapterCount} - 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(novel.id, targetChapter.novelId));
 
       return { success: true };
     },

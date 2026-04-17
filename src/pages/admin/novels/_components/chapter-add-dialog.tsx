@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,13 +36,11 @@ const chapterFormSchema = z.object({
 });
 
 export function ChapterAddDialog({
-  locale,
   novelId,
   chapterCount,
   open,
   onOpenChange,
 }: {
-  locale: string;
   novelId: string;
   chapterCount: number;
   open: boolean;

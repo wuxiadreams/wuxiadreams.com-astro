@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import {
   Card,
@@ -33,7 +31,6 @@ export function ChaptersInfo({
           <p className="text-sm font-medium">章节总数：{chapterCount}</p>
           <ChapterListDialog novelId={novelId} />
           <ChapterAddDialog
-            locale="zh"
             novelId={novelId}
             chapterCount={chapterCount}
             open={isChapterDialogOpen}
