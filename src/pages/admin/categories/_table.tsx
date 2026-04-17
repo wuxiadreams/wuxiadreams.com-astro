@@ -25,6 +25,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -176,18 +187,39 @@ export default function CategoryTable() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => syncMutation.mutate()}
-            disabled={syncMutation.isPending}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw
-              size="16"
-              className={syncMutation.isPending ? "animate-spin" : ""}
-            />
-            {syncMutation.isPending ? "同步中..." : "同步关联小说数"}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={syncMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw
+                  size="16"
+                  className={syncMutation.isPending ? "animate-spin" : ""}
+                />
+                {syncMutation.isPending ? "同步中..." : "同步小说数"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认同步分类关联的小说数？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  此操作会遍历数据库并重新统计所有分类关联的小说数。
+                  <br />
+                  <br />
+                  <strong>注意：</strong>
+                  该操作可能会消耗较多的数据库读写额度，请确认是否继续？
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={() => syncMutation.mutate()}>
+                  确认同步
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button onClick={() => setIsCreateOpen(true)}>新建分类</Button>
         </div>
       </div>

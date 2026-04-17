@@ -20,6 +20,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -149,18 +160,36 @@ export default function TagTable() {
           />
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="secondary"
-            onClick={handleSyncNovelCount}
-            disabled={isSyncing}
-          >
-            {isSyncing ? (
-              <Spinner className="mr-2 h-4 w-4" />
-            ) : (
-              <RefreshCcw className="mr-2 h-4 w-4" />
-            )}
-            同步关联小说数
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="secondary" disabled={isSyncing}>
+                {isSyncing ? (
+                  <Spinner className="mr-2 h-4 w-4" />
+                ) : (
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                )}
+                同步关联小说数
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认同步标签关联的小说数？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  此操作会遍历数据库并重新统计所有标签关联的小说数。
+                  <br />
+                  <br />
+                  <strong>注意：</strong>
+                  该操作可能会消耗较多的数据库读写额度，请确认是否继续？
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSyncNovelCount}>
+                  确认同步
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button onClick={() => setIsCreateOpen(true)}>新建标签</Button>
         </div>
       </div>
