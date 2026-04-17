@@ -10,6 +10,7 @@ export default defineConfig({
   redirects: {
     "/en": "/",
   },
+  prefetch: true,
   experimental: {
     cache: {
       provider: memoryCache(),
