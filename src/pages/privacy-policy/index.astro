@@ -1,0 +1,16 @@
+---
+import Layout from "@/layouts/layout.astro";
+import { Content } from "./_content.md";
+
+export const prerender = true;
+---
+
+<Layout title="Privacy Policy — Wuxia Dreams">
+  <main class="w-full px-4 py-12">
+    <div
+      class="mx-auto prose dark:prose-invert prose-h1:font-bold prose-h1:text-3xl prose-a:text-primary prose-p:text-justify prose-img:rounded-xl prose-headings:underline"
+    >
+      <Content />
+    </div>
+  </main>
+</Layout>

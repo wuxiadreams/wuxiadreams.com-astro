@@ -3,7 +3,6 @@ import { env } from "cloudflare:workers";
 import { defineMiddleware } from "astro:middleware";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  console.log("Middleware:", context.url.pathname);
   const isAuthed = await auth.api.getSession({
     headers: context.request.headers,
   });
