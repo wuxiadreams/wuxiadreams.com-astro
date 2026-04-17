@@ -103,7 +103,7 @@ const jsonLd = {
 Astro.cache.set({
   maxAge: 86400,
   swr: 60,
-  tags: ["novel", novelData.id],
+  tags: ["novel", `novel:${novelData.id}`],
 });
 ---
 

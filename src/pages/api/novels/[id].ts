@@ -67,7 +67,7 @@ export async function PUT(context: APIContext) {
     }
 
     // 清除缓存
-    await cache.invalidate({ tags: ["novel", updatedNovel[0].id] });
+    await cache.invalidate({ tags: [`novel:${updatedNovel[0].id}`] });
 
     // Handle authorId update
     if (authorId !== undefined) {
@@ -202,7 +202,7 @@ export async function DELETE(context: APIContext) {
     }
 
     // 清除缓存
-    await cache.invalidate({ tags: ["novel", deletedNovel[0].id] });
+    await cache.invalidate({ tags: [`novel:${deletedNovel[0].id}`] });
 
     try {
       if (deletedNovel[0].cover) {

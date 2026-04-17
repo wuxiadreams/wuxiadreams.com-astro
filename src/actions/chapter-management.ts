@@ -348,7 +348,7 @@ export const chapterManagement = {
       }
 
       await cache.invalidate({
-        tags: ["chapter", targetChapter.novelId, String(targetChapter.number)],
+        tags: [`chapter:${targetChapter.novelId}-${targetChapter.number}`],
       });
 
       if (targetChapter.fileKey) {
