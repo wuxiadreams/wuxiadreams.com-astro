@@ -21,6 +21,13 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import MdEditor from "@/components/md-editor";
 import { sanitizeSlug } from "@/lib/utils";
 import { MultiSelect } from "./multi-select";
@@ -533,15 +540,17 @@ export default function NovelForm({
                       </FormLabel>
                       <FormDescription>小说的连载状态</FormDescription>
                     </div>
-                    <FormControl>
-                      <select
-                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        {...field}
-                      >
-                        <option value="ongoing">连载中</option>
-                        <option value="completed">已完结</option>
-                      </select>
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="选择小说状态" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ongoing">连载中</SelectItem>
+                        <SelectItem value="completed">已完结</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
