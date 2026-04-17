@@ -80,7 +80,7 @@ const sortedLetters = Object.keys(authorsByLetter).sort((a, b) => {
                 {authorsByLetter[letter].map((author) => (
                   <a
                     href={`/author/${author.slug}`}
-                    class="group flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition hover:border-primary/50 hover:bg-muted/30 hover:shadow-md"
+                    class="group flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition hover:border-primary/50 hover:bg-muted/30 hover:shadow-md overflow-hidden"
                   >
                     <div class="flex flex-col min-w-0 flex-1">
                       <span class="font-semibold group-hover:text-primary transition-colors truncate">
