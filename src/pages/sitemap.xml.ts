@@ -3,9 +3,9 @@ import { db } from "@/lib/db";
 import { novel } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const GET: APIRoute = async ({ site, cache }) => {
+export const GET: APIRoute = async ({ cache }) => {
   cache.set({
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 0,
     tags: ["sitemap"],
   });
 
