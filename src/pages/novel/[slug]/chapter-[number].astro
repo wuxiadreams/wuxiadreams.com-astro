@@ -1,8 +1,5 @@
 ---
 import Layout from "@/layouts/layout.astro";
-import { db } from "@/lib/db";
-import { novel, chapter, author, novelAuthor } from "@/db/schema";
-import { eq, and, lt, gt, desc, asc, count } from "drizzle-orm";
 import { actions } from "astro:actions";
 import { formatDate } from "@/lib/utils";
 import { ChapterSettings } from "@/components/chapter-settings";
@@ -15,76 +12,26 @@ if (!slug || isNaN(chapterNumber)) {
   return Astro.redirect("/novels");
 }
 
-// 1. 获取小说信息及章节元数据
-const novelData = await db
-  .select({
-    id: novel.id,
-    title: novel.title,
-    slug: novel.slug,
-    authorName: author.name,
-    authorNameAlt: author.nameAlt,
-    authorSlug: author.slug,
-  })
-  .from(novel)
-  .leftJoin(novelAuthor, eq(novel.id, novelAuthor.novelId))
-  .leftJoin(author, eq(novelAuthor.authorId, author.id))
-  .where(and(eq(novel.slug, slug), eq(novel.published, true)))
-  .get();
+const { data: chapterDataResult, error: actionError } = await Astro.callAction(
+  actions.chapter.getChapterData,
+  {
+    slug,
+    chapterNumber,
+  },
+);
 
-if (!novelData) {
+if (actionError || !chapterDataResult?.data) {
+  if (
+    chapterDataResult?.error === "Chapter not found" &&
+    chapterDataResult.data?.novelData
+  ) {
+    return Astro.redirect(`/novel/${chapterDataResult.data.novelData.slug}`);
+  }
   return Astro.redirect("/novels");
 }
 
-// 2. 获取当前章节
-const currentChapter = await db
-  .select()
-  .from(chapter)
-  .where(
-    and(
-      eq(chapter.novelId, novelData.id),
-      eq(chapter.number, chapterNumber),
-      eq(chapter.published, true),
-    ),
-  )
-  .get();
-
-if (!currentChapter) {
-  return Astro.redirect(`/novel/${novelData.slug}`);
-}
-
-// 3. 获取上一章和下一章 (用于导航) 以及总章节数
-const [prevChapter, nextChapter, [{ totalChapters }]] = await Promise.all([
-  db
-    .select({ number: chapter.number })
-    .from(chapter)
-    .where(
-      and(
-        eq(chapter.novelId, novelData.id),
-        lt(chapter.number, chapterNumber),
-        eq(chapter.published, true),
-      ),
-    )
-    .orderBy(desc(chapter.number))
-    .limit(1)
-    .get(),
-  db
-    .select({ number: chapter.number })
-    .from(chapter)
-    .where(
-      and(
-        eq(chapter.novelId, novelData.id),
-        gt(chapter.number, chapterNumber),
-        eq(chapter.published, true),
-      ),
-    )
-    .orderBy(asc(chapter.number))
-    .limit(1)
-    .get(),
-  db
-    .select({ totalChapters: count() })
-    .from(chapter)
-    .where(and(eq(chapter.novelId, novelData.id), eq(chapter.published, true))),
-]);
+const { novelData, currentChapter, prevChapter, nextChapter, totalChapters } =
+  chapterDataResult.data;
 
 // 4. 从 R2 获取章节内容
 let chapterContent = "";
@@ -114,6 +61,12 @@ contentParagraphs =
   contentParagraphs.length > 0
     ? contentParagraphs.slice(1)
     : ["No content available."];
+
+Astro.cache.set({
+  maxAge: 86400,
+  swr: 60,
+  tags: ["chapter", slug, number],
+});
 ---
 
 <Layout

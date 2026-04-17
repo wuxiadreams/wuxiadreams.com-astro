@@ -25,7 +25,6 @@ export const novelActions = {
       incrementView: z.boolean().default(false),
     }),
     handler: async (input) => {
-      console.log("getNovelInfo input:", input);
       const { slug, currentPage, sortOrder, pageSize, incrementView } = input;
 
       // 1. 获取小说基本信息

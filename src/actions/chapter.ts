@@ -3,8 +3,8 @@ import { z } from "zod";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { R2, R2_NOVELS_BUCKET } from "@/lib/r2";
 import { db } from "@/lib/db";
-import { chapter as chapterSchema } from "@/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { chapter as chapterSchema, novel } from "@/db/schema";
+import { eq, and, asc, desc, lt, gt, count } from "drizzle-orm";
 
 export const chapter = {
   fetchChapterContent: defineAction({
@@ -84,6 +84,100 @@ export const chapter = {
         const errorMsg = e instanceof Error ? e.message : "Unknown error";
         return { chapters: [], error: `Failed to fetch chapters: ${errorMsg}` };
       }
+    },
+  }),
+  getChapterData: defineAction({
+    accept: "json",
+    input: z.object({
+      slug: z.string(),
+      chapterNumber: z.number(),
+    }),
+    handler: async (input) => {
+      const { slug, chapterNumber } = input;
+
+      // 1. 获取小说信息
+      const novelData = await db
+        .select({
+          id: novel.id,
+          title: novel.title,
+          slug: novel.slug,
+        })
+        .from(novel)
+        .where(and(eq(novel.slug, slug), eq(novel.published, true)))
+        .get();
+
+      if (!novelData) {
+        return { data: null, error: "Novel not found" };
+      }
+
+      // 2. 获取当前章节
+      const currentChapter = await db
+        .select()
+        .from(chapterSchema)
+        .where(
+          and(
+            eq(chapterSchema.novelId, novelData.id),
+            eq(chapterSchema.number, chapterNumber),
+            eq(chapterSchema.published, true),
+          ),
+        )
+        .get();
+
+      if (!currentChapter) {
+        return { data: null, error: "Chapter not found", novelData };
+      }
+
+      // 3. 获取上一章和下一章 (用于导航) 以及总章节数
+      const [prevChapter, nextChapter, [{ totalChapters }]] = await Promise.all(
+        [
+          db
+            .select({ number: chapterSchema.number })
+            .from(chapterSchema)
+            .where(
+              and(
+                eq(chapterSchema.novelId, novelData.id),
+                lt(chapterSchema.number, chapterNumber),
+                eq(chapterSchema.published, true),
+              ),
+            )
+            .orderBy(desc(chapterSchema.number))
+            .limit(1)
+            .get(),
+          db
+            .select({ number: chapterSchema.number })
+            .from(chapterSchema)
+            .where(
+              and(
+                eq(chapterSchema.novelId, novelData.id),
+                gt(chapterSchema.number, chapterNumber),
+                eq(chapterSchema.published, true),
+              ),
+            )
+            .orderBy(asc(chapterSchema.number))
+            .limit(1)
+            .get(),
+          db
+            .select({ totalChapters: count() })
+            .from(chapterSchema)
+            .where(
+              and(
+                eq(chapterSchema.novelId, novelData.id),
+                eq(chapterSchema.published, true),
+              ),
+            ),
+        ],
+      );
+
+      return {
+        data: {
+          novelData,
+          currentChapter,
+          prevChapter,
+          nextChapter,
+          totalChapters,
+        },
+        error: null,
+      };
     },
   }),
 };
