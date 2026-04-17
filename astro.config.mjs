@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, memoryCache } from "astro/config";
 import react from "@astrojs/react";
 import cloudflare from "@astrojs/cloudflare";
 import tailwindcss from "@tailwindcss/vite";
@@ -9,6 +9,11 @@ export default defineConfig({
   output: "server",
   redirects: {
     "/en": "/",
+  },
+  experimental: {
+    cache: {
+      provider: memoryCache(),
+    },
   },
   integrations: [react()],
   adapter: cloudflare({}),
