@@ -393,7 +393,7 @@ Astro.cache.set({
         class="flex flex-col gap-1 rounded-full bg-background/95 p-1.5 backdrop-blur-xl border border-border/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
       >
         <ChapterIndexDrawer
-          client:only="react"
+          client:load
           novelId={novelData.id}
           novelSlug={novelData.slug}
           novelTitle={novelData.title}
