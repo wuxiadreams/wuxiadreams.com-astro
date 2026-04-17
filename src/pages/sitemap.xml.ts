@@ -3,7 +3,12 @@ import { db } from "@/lib/db";
 import { novel } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const GET: APIRoute = async ({ site }) => {
+export const GET: APIRoute = async ({ site, cache }) => {
+  cache.set({
+    maxAge: 60 * 60 * 24 * 7,
+    tags: ["sitemap"],
+  });
+
   const novels = await db
     .select({
       slug: novel.slug,
@@ -12,7 +17,6 @@ export const GET: APIRoute = async ({ site }) => {
     .from(novel)
     .where(eq(novel.published, true));
 
-  // 构造 XML 字符串
   const baseUrl = site ? site.href : "https://wuxiadreams.com";
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -43,7 +47,6 @@ export const GET: APIRoute = async ({ site }) => {
     status: 200,
     headers: {
       "Content-Type": "application/xml",
-      // 关键优化：给 Sitemap 设置缓存，防止爬虫每次访问都刷 D1 额度
       "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=600",
     },
   });
