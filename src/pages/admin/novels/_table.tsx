@@ -35,6 +35,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import DeleteNovelDialog from "./_delete";
 import NovelActions from "./_actions";
 import type { NovelListResponse, NovelType } from "@/pages/api/novels";
@@ -49,17 +56,25 @@ export default function NovelTable() {
     "createdAt",
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [publishedFilter, setPublishedFilter] = useState<
+    "all" | "true" | "false"
+  >("all");
 
   // Delete Confirmation state
   const [deletingNovel, setDeletingNovel] = useState<NovelType | null>(null);
 
-  const params = {
+  const params: Record<string, string> = {
     page: String(currentPage),
     pageSize: String(pageSize),
     search: debouncedSearchQuery,
     sortBy,
     sortOrder,
   };
+
+  if (publishedFilter !== "all") {
+    params.published = publishedFilter;
+  }
+
   const queryString = new URLSearchParams(params).toString();
   const queryClient = useStore(reactQueryClient);
   const { data, isFetching } = useQuery(
@@ -148,9 +163,25 @@ export default function NovelTable() {
             onChange={handleSearch}
             className="w-72"
           />
+          <Select
+            value={publishedFilter}
+            onValueChange={(value: "all" | "true" | "false") => {
+              setPublishedFilter(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="发布状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">所有状态</SelectItem>
+              <SelectItem value="true">已发布</SelectItem>
+              <SelectItem value="false">未发布</SelectItem>
+            </SelectContent>
+          </Select>
           <RefreshCcw
             size="16"
-            className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
+            className="cursor-pointer text-muted-foreground hover:text-primary transition-colors ml-2"
             onClick={handleRefresh}
           />
         </div>

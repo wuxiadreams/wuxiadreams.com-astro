@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { desc, asc, count, or, like, eq } from "drizzle-orm";
+import { desc, asc, count, or, like, eq, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
 import type { PaginatedResponse } from "../users/index";
@@ -170,17 +170,27 @@ export async function GET({
   const pageSize = Math.max(1, Number(url.searchParams.get("pageSize") || 10));
   const offset = (page - 1) * pageSize;
   const search = url.searchParams.get("search");
+  const publishedFilter = url.searchParams.get("published");
 
   const sortBy = url.searchParams.get("sortBy") || "createdAt";
   const sortOrder = url.searchParams.get("sortOrder") || "desc";
 
-  const queryFilter = search
+  const searchFilter = search
     ? or(
         like(novel.title, `%${search}%`),
         like(novel.titleAlt, `%${search}%`),
         like(novel.slug, `%${search}%`),
       )
     : undefined;
+
+  let publishCondition = undefined;
+  if (publishedFilter === "true") {
+    publishCondition = eq(novel.published, true);
+  } else if (publishedFilter === "false") {
+    publishCondition = eq(novel.published, false);
+  }
+
+  const queryFilter = and(searchFilter, publishCondition);
 
   let orderByColumn;
   if (sortBy === "title") {
