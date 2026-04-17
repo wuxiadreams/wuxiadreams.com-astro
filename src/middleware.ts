@@ -2,8 +2,6 @@ import { auth } from "@/lib/auth";
 import { env } from "cloudflare:workers";
 import { defineMiddleware } from "astro:middleware";
 
-const staticPaths = ["/dmca", "/privacy-policy", "/terms-of-service"];
-
 export const onRequest = defineMiddleware(async (context, next) => {
   const isAuthed = await auth.api.getSession({
     headers: context.request.headers,
