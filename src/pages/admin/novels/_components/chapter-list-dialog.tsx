@@ -216,12 +216,14 @@ export function ChapterListDialog({ novelId }: { novelId: string }) {
                           size="sm"
                           variant={chapter.published ? "secondary" : "default"}
                           className="text-sm cursor-pointer"
-                          disabled={delMutation.isPending}
+                          disabled={
+                            statusMutation.isPending && currentId === chapter.id
+                          }
                           onClick={() =>
                             handleStatusChange(chapter.id, !!chapter.published)
                           }
                         >
-                          {delMutation.isPending &&
+                          {statusMutation.isPending &&
                             actionType === "status" &&
                             chapter.id === currentId && (
                               <Spinner className="mr-2 h-3 w-3" />

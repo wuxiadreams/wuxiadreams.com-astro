@@ -124,17 +124,32 @@ export default function NovelForm({
           slug: finalSlug,
         };
 
-        return fetch(url, {
+        const res = await fetch(url, {
           method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+
+        if (!res.ok) {
+          const errorData = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(
+            errorData.error || (isEditing ? "更新小说失败" : "创建小说失败"),
+          );
+        }
+
+        return res.json() as Promise<{ id?: string }>;
       },
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast.success(isEditing ? "小说更新成功" : "小说创建成功");
         queryClient.invalidateQueries({ queryKey: ["novels"] });
         if (isEditing) {
           queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
+        } else if (data && data.id) {
+          setTimeout(() => {
+            window.location.href = `/admin/novels/${data.id}`;
+          }, 200);
         }
       },
       onError: (error: any) => {
