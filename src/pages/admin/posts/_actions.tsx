@@ -121,12 +121,17 @@ export default function PostActions({
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>操作</DropdownMenuLabel>
 
-          <a href={`/admin/posts/${post.id}`}>
-            <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem asChild>
+            <a 
+              href={`/admin/posts/${post.id}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="cursor-pointer flex items-center w-full"
+            >
               <Edit className="mr-2 h-4 w-4" />
-              编辑文章
-            </DropdownMenuItem>
-          </a>
+              <span>编辑文章</span>
+            </a>
+          </DropdownMenuItem>
 
           <DropdownMenuItem
             className="cursor-pointer"

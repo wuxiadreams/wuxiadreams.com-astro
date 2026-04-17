@@ -1,13 +1,23 @@
 ---
 import AdminLayout from "@/layouts/admin-layout.astro";
 import PostForm from "./_form.tsx";
+import { ArrowLeft } from "lucide-react";
 ---
 
 <AdminLayout title="新建文章">
   <div class="flex flex-col gap-6">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight">新建文章</h1>
-      <p class="text-muted-foreground">在平台上创建一篇新的文章或公告</p>
+    <div class="flex items-center gap-4">
+      <a
+        href="/admin/posts"
+        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span class="sr-only">返回列表</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">新建文章</h1>
+        <p class="text-muted-foreground">在平台上创建一篇新的文章或公告</p>
+      </div>
     </div>
 
     <PostForm client:only="react" />
