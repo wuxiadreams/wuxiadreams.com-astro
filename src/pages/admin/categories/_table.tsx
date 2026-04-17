@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
   RefreshCcw,
+  RefreshCw,
   Edit,
   Trash2,
   ArrowUpDown,
@@ -13,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useDebounce } from "use-debounce";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { reactQueryClient } from "@/stores/query";
 import type { CategoryListResponse } from "@/pages/api/categories";
 import {
@@ -38,7 +39,9 @@ export default function CategoryTable() {
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
-  const [sortBy, setSortBy] = useState<"createdAt" | "name">("createdAt");
+  const [sortBy, setSortBy] = useState<"createdAt" | "name" | "novelCount">(
+    "createdAt",
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Dialogs state
@@ -73,6 +76,29 @@ export default function CategoryTable() {
     queryClient,
   );
 
+  const syncMutation = useMutation(
+    {
+      mutationFn: async () => {
+        const res = await fetch("/api/categories/sync", {
+          method: "POST",
+        });
+        if (!res.ok) {
+          const errorData = (await res.json()) as { error?: string };
+          throw new Error(errorData.error || "同步失败");
+        }
+        return res.json();
+      },
+      onSuccess: () => {
+        toast.success("分类小说数量同步成功");
+        queryClient.invalidateQueries({ queryKey: ["categories"] });
+      },
+      onError: (error) => {
+        toast.error(`同步失败: ${error.message}`);
+      },
+    },
+    queryClient,
+  );
+
   const categories = data?.items || [];
   const meta = data?.meta || { total: 0, totalPages: 0 };
   const { total, totalPages } = meta;
@@ -96,12 +122,12 @@ export default function CategoryTable() {
     queryClient.invalidateQueries({ queryKey: ["categories"] });
   };
 
-  const handleSort = (column: "createdAt" | "name") => {
+  const handleSort = (column: "createdAt" | "name" | "novelCount") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(column);
-      setSortOrder("asc"); // Default to ascending when sorting by a new column
+      setSortOrder("desc"); // Default to descending when sorting by a new column
     }
   };
 
@@ -123,7 +149,7 @@ export default function CategoryTable() {
     }
   };
 
-  const renderSortIcon = (column: "createdAt" | "name") => {
+  const renderSortIcon = (column: "createdAt" | "name" | "novelCount") => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />;
     return sortOrder === "asc" ? (
@@ -149,7 +175,21 @@ export default function CategoryTable() {
             onClick={handleRefresh}
           />
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>新建分类</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw
+              size="16"
+              className={syncMutation.isPending ? "animate-spin" : ""}
+            />
+            {syncMutation.isPending ? "同步中..." : "同步关联小说数"}
+          </Button>
+          <Button onClick={() => setIsCreateOpen(true)}>新建分类</Button>
+        </div>
       </div>
 
       <div className="relative rounded-md border">
@@ -172,6 +212,15 @@ export default function CategoryTable() {
                 </div>
               </TableHead>
               <TableHead>Slug</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("novelCount")}
+              >
+                <div className="flex items-center">
+                  关联数
+                  {renderSortIcon("novelCount")}
+                </div>
+              </TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort("createdAt")}
@@ -203,6 +252,7 @@ export default function CategoryTable() {
                   <TableCell className="text-muted-foreground">
                     {category.slug}
                   </TableCell>
+                  <TableCell>{category.novelCount}</TableCell>
                   <TableCell>{formatDate(category.createdAt)}</TableCell>
                   <TableCell>
                     {category.isPinned ? (
@@ -250,7 +300,7 @@ export default function CategoryTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
                   未找到分类

@@ -110,6 +110,8 @@ export async function GET({
   let orderByColumn;
   if (sortBy === "title") {
     orderByColumn = sortOrder === "asc" ? asc(novel.title) : desc(novel.title);
+  } else if (sortBy === "chapterCount") {
+    orderByColumn = sortOrder === "asc" ? asc(novel.chapterCount) : desc(novel.chapterCount);
   } else {
     // Default to createdAt
     orderByColumn =

@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useStore } from "@nanostores/react";
 import {
   RefreshCcw,
-  Eye,
-  Edit,
+  RefreshCw,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -12,7 +11,7 @@ import {
   Pin,
 } from "lucide-react";
 import { useDebounce } from "use-debounce";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { reactQueryClient } from "@/stores/query";
 import {
   Table,
@@ -28,13 +27,16 @@ import { Spinner } from "@/components/ui/spinner";
 import DeleteNovelDialog from "./_delete";
 import NovelActions from "./_actions";
 import type { NovelListResponse, NovelType } from "@/pages/api/novels";
+import { toast } from "sonner";
 
 export default function NovelTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
-  const [sortBy, setSortBy] = useState<"createdAt" | "title">("createdAt");
+  const [sortBy, setSortBy] = useState<"createdAt" | "title" | "chapterCount">(
+    "createdAt",
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Delete Confirmation state
@@ -55,6 +57,29 @@ export default function NovelTable() {
       queryFn: async (): Promise<NovelListResponse> => {
         const res = await fetch(`/api/novels?${queryString}`);
         return res.json();
+      },
+    },
+    queryClient,
+  );
+
+  const syncMutation = useMutation(
+    {
+      mutationFn: async () => {
+        const res = await fetch("/api/novels/sync", {
+          method: "POST",
+        });
+        if (!res.ok) {
+          const errorData = (await res.json()) as { error?: string };
+          throw new Error(errorData.error || "同步失败");
+        }
+        return res.json();
+      },
+      onSuccess: () => {
+        toast.success("小说章节数同步成功");
+        queryClient.invalidateQueries({ queryKey: ["novels"] });
+      },
+      onError: (error) => {
+        toast.error(`同步失败: ${error.message}`);
       },
     },
     queryClient,
@@ -83,16 +108,16 @@ export default function NovelTable() {
     queryClient.invalidateQueries({ queryKey: ["novels"] });
   };
 
-  const handleSort = (column: "createdAt" | "title") => {
+  const handleSort = (column: "createdAt" | "title" | "chapterCount") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortBy(column);
-      setSortOrder("asc"); // Default to ascending when sorting by a new column
+      setSortOrder("desc"); // Default to descending when sorting by a new column
     }
   };
 
-  const renderSortIcon = (column: "createdAt" | "title") => {
+  const renderSortIcon = (column: "createdAt" | "title" | "chapterCount") => {
     if (sortBy !== column)
       return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />;
     return sortOrder === "asc" ? (
@@ -118,13 +143,27 @@ export default function NovelTable() {
             onClick={handleRefresh}
           />
         </div>
-        <a
-          href="/admin/novels/create"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button>新建小说</Button>
-        </a>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw
+              size="16"
+              className={syncMutation.isPending ? "animate-spin" : ""}
+            />
+            {syncMutation.isPending ? "同步中..." : "同步章节数"}
+          </Button>
+          <a
+            href="/admin/novels/create"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button>新建小说</Button>
+          </a>
+        </div>
       </div>
 
       <div className="relative rounded-md border">
@@ -147,6 +186,15 @@ export default function NovelTable() {
               </TableHead>
               <TableHead className="w-[240px]">别名</TableHead>
               <TableHead className="w-[240px]">Slug</TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("chapterCount")}
+              >
+                <div className="flex items-center">
+                  章节数
+                  {renderSortIcon("chapterCount")}
+                </div>
+              </TableHead>
               <TableHead>状态</TableHead>
               <TableHead>发布</TableHead>
               <TableHead>置顶</TableHead>
@@ -197,6 +245,7 @@ export default function NovelTable() {
                   >
                     {novel.slug}
                   </TableCell>
+                  <TableCell>{novel.chapterCount}</TableCell>
                   <TableCell>{novel.status}</TableCell>
                   <TableCell>
                     {novel.published ? (
@@ -224,7 +273,7 @@ export default function NovelTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={9}
                   className="h-24 text-center text-muted-foreground"
                 >
                   未找到小说

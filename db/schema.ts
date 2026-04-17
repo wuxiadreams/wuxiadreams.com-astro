@@ -211,6 +211,7 @@ export const category = sqliteTable("category", {
     .integer("is_pinned", { mode: "boolean" })
     .notNull()
     .default(false),
+  novelCount: t.integer("novel_count").notNull().default(0),
   createdAt: t.integer("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
@@ -231,6 +232,14 @@ export const novelCategory = sqliteTable(
   (table) => [
     primaryKey({ columns: [table.novelId, table.categoryId] }),
     index("novel_category_category_id_idx").on(table.categoryId),
+    index("novel_category_category_id_novel_id_idx").on(
+      table.categoryId,
+      table.novelId,
+    ),
+    index("novel_category_novel_id_category_id_idx").on(
+      table.novelId,
+      table.categoryId,
+    ),
   ],
 );
 

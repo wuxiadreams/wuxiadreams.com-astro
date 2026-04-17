@@ -41,6 +41,9 @@ export async function GET({
   if (sortBy === "name") {
     orderByColumn =
       sortOrder === "asc" ? asc(category.name) : desc(category.name);
+  } else if (sortBy === "novelCount") {
+    orderByColumn =
+      sortOrder === "asc" ? asc(category.novelCount) : desc(category.novelCount);
   } else {
     // Default to createdAt
     orderByColumn =

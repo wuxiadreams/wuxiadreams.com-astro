@@ -101,6 +101,7 @@ export const chapter = {
           id: novel.id,
           title: novel.title,
           slug: novel.slug,
+          totalChapters: novel.chapterCount,
         })
         .from(novel)
         .where(and(eq(novel.slug, slug), eq(novel.published, true)))
@@ -128,45 +129,43 @@ export const chapter = {
       }
 
       // 3. 获取上一章和下一章 (用于导航) 以及总章节数
-      const [prevChapter, nextChapter, [{ totalChapters }]] = await Promise.all(
-        [
-          db
-            .select({ number: chapterSchema.number })
-            .from(chapterSchema)
-            .where(
-              and(
-                eq(chapterSchema.novelId, novelData.id),
-                lt(chapterSchema.number, chapterNumber),
-                eq(chapterSchema.published, true),
-              ),
-            )
-            .orderBy(desc(chapterSchema.number))
-            .limit(1)
-            .get(),
-          db
-            .select({ number: chapterSchema.number })
-            .from(chapterSchema)
-            .where(
-              and(
-                eq(chapterSchema.novelId, novelData.id),
-                gt(chapterSchema.number, chapterNumber),
-                eq(chapterSchema.published, true),
-              ),
-            )
-            .orderBy(asc(chapterSchema.number))
-            .limit(1)
-            .get(),
-          db
-            .select({ totalChapters: count() })
-            .from(chapterSchema)
-            .where(
-              and(
-                eq(chapterSchema.novelId, novelData.id),
-                eq(chapterSchema.published, true),
-              ),
+      const [prevChapter, nextChapter] = await Promise.all([
+        db
+          .select({ number: chapterSchema.number })
+          .from(chapterSchema)
+          .where(
+            and(
+              eq(chapterSchema.novelId, novelData.id),
+              lt(chapterSchema.number, chapterNumber),
+              eq(chapterSchema.published, true),
             ),
-        ],
-      );
+          )
+          .orderBy(desc(chapterSchema.number))
+          .limit(1)
+          .get(),
+        db
+          .select({ number: chapterSchema.number })
+          .from(chapterSchema)
+          .where(
+            and(
+              eq(chapterSchema.novelId, novelData.id),
+              gt(chapterSchema.number, chapterNumber),
+              eq(chapterSchema.published, true),
+            ),
+          )
+          .orderBy(asc(chapterSchema.number))
+          .limit(1)
+          .get(),
+        db
+          .select({ totalChapters: count() })
+          .from(chapterSchema)
+          .where(
+            and(
+              eq(chapterSchema.novelId, novelData.id),
+              eq(chapterSchema.published, true),
+            ),
+          ),
+      ]);
 
       return {
         data: {
@@ -174,7 +173,7 @@ export const chapter = {
           currentChapter,
           prevChapter,
           nextChapter,
-          totalChapters,
+          totalChapters: novelData.totalChapters,
         },
         error: null,
       };

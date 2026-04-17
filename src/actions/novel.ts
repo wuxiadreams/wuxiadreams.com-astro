@@ -12,7 +12,7 @@ import {
   chapter,
   dailyStat,
 } from "@/db/schema";
-import { eq, asc, and, count, desc, sql } from "drizzle-orm";
+import { eq, asc, and, desc, sql } from "drizzle-orm";
 
 export const novelActions = {
   getNovelInfo: defineAction({
@@ -76,26 +76,6 @@ export const novelActions = {
         novelData.viewCount += 1;
       }
 
-      // 使用 count(*) OVER() 可以在一次扫描中拿到列表和总记录数
-      const chaptersQuery = db
-        .select({
-          id: chapter.id,
-          title: chapter.title,
-          number: chapter.number,
-          wordCount: chapter.wordCount,
-          createdAt: chapter.createdAt,
-          totalCount: sql<number>`count(*) OVER()`.mapWith(Number),
-        })
-        .from(chapter)
-        .where(
-          and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)),
-        )
-        .orderBy(
-          sortOrder === "desc" ? desc(chapter.number) : asc(chapter.number),
-        )
-        .limit(pageSize)
-        .offset((currentPage - 1) * pageSize);
-
       // 2. 并行获取关联数据 (作者, 分类, 标签, 章节数据, 第一章数据)
       const [
         authorsData,
@@ -138,8 +118,24 @@ export const novelActions = {
           .innerJoin(tag, eq(novelTag.tagId, tag.id))
           .where(eq(novelTag.novelId, novelData.id)),
 
-        // 执行合并后的章节查询
-        chaptersQuery,
+        // 获取章节数据
+        db
+          .select({
+            id: chapter.id,
+            title: chapter.title,
+            number: chapter.number,
+            wordCount: chapter.wordCount,
+            createdAt: chapter.createdAt,
+          })
+          .from(chapter)
+          .where(
+            and(eq(chapter.novelId, novelData.id), eq(chapter.published, true)),
+          )
+          .orderBy(
+            sortOrder === "desc" ? desc(chapter.number) : asc(chapter.number),
+          )
+          .limit(pageSize)
+          .offset((currentPage - 1) * pageSize),
 
         // 获取第一章数据 (仅查一个字段，用于“开始阅读”按钮)
         db
@@ -152,8 +148,7 @@ export const novelActions = {
           .limit(1),
       ]);
 
-      // 提取总章节数, 因为 count(*) OVER() 在每一行都会返回相同的结果
-      const totalChapters = chaptersData[0]?.totalCount ?? 0;
+      const totalChapters = novelData.chapterCount;
 
       // 3. 获取作者相关的其他小说 (最多6本)
       let authorOtherNovels: any[] = [];
@@ -165,18 +160,16 @@ export const novelActions = {
             cover: novel.cover,
             score: novel.score,
             status: novel.status,
-            chapterCount: count(chapter.id),
+            chapterCount: novel.chapterCount,
           })
           .from(novelAuthor)
           .innerJoin(novel, eq(novelAuthor.novelId, novel.id))
-          .leftJoin(chapter, eq(novel.id, chapter.novelId))
           .where(
             and(
               eq(novelAuthor.authorId, authorsData[0].id),
               eq(novel.published, true),
             ),
           )
-          .groupBy(novel.id)
           .orderBy(desc(novel.viewCount))
           .limit(7);
 
