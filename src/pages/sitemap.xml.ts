@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { novel } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-export const GET: APIRoute = async ({ cache }) => {
+export const GET: APIRoute = async ({ site, cache }) => {
   cache.set({
     maxAge: 60 * 60 * 24 * 7,
     tags: ["sitemap"],
@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ cache }) => {
     .from(novel)
     .where(eq(novel.published, true));
 
-  const baseUrl = "https://wuxiadreams.com/";
+  const baseUrl = site ? site.href : "https://wuxiadreams.com/";
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
