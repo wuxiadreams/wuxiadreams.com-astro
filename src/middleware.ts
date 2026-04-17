@@ -5,12 +5,6 @@ import { defineMiddleware } from "astro:middleware";
 const staticPaths = ["/dmca", "/privacy-policy", "/terms-of-service"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // 跳过静态页面校验
-  const { url } = context;
-  if (staticPaths.includes(url.pathname)) {
-    return next();
-  }
-
   const isAuthed = await auth.api.getSession({
     headers: context.request.headers,
   });
