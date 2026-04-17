@@ -75,9 +75,7 @@ const featured = editorsPicks.map((novel) => {
     slug: novel.slug,
     author: authorName,
     tag: tagName,
-    cover: novel.cover
-      ? `https://${env.R2_DOMAIN}/${novel.cover}`
-      : "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=900&q=80",
+    cover: `https://${env.R2_DOMAIN}/${novel.cover}`,
   };
 });
 

@@ -156,15 +156,6 @@ export const chapter = {
           .orderBy(asc(chapterSchema.number))
           .limit(1)
           .get(),
-        db
-          .select({ totalChapters: count() })
-          .from(chapterSchema)
-          .where(
-            and(
-              eq(chapterSchema.novelId, novelData.id),
-              eq(chapterSchema.published, true),
-            ),
-          ),
       ]);
 
       return {
