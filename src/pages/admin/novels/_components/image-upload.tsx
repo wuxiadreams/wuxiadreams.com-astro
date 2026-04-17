@@ -93,7 +93,7 @@ export function ImageUpload({
           <img
             src={`https://${r2Domain}/${value}`}
             alt="Cover Preview"
-            className="h-full w-auto object-contain rounded-md border border-border/50 bg-muted/10 shadow-sm"
+            className="h-full min-w-[200px] object-contain rounded-md border border-border/50 bg-muted/10 shadow-sm"
           />
           <button
             type="button"
