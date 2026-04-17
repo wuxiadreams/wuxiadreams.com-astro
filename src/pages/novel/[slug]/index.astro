@@ -69,12 +69,6 @@ const formatDate = (date: Date | number | string) => {
   }).format(d);
 };
 
-Astro.cache.set({
-  maxAge: 86400,
-  swr: 60,
-  tags: ["novel", slug],
-});
-
 // JSON-LD
 const jsonLd = {
   "@context": "https://schema.org",
@@ -105,6 +99,12 @@ const jsonLd = {
     ratingCount: novelData.reviewCount,
   },
 };
+
+Astro.cache.set({
+  maxAge: 86400,
+  swr: 60,
+  tags: ["novel", novelData.id],
+});
 ---
 
 <Layout

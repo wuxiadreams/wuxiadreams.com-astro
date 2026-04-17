@@ -5,15 +5,8 @@ import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
 import { copySingleFile } from "@/lib/r2";
 import { actions } from "astro:actions";
 
-export async function PUT({
-  locals,
-  request,
-  params,
-}: {
-  locals: any;
-  request: Request;
-  params: { id: string };
-}) {
+export async function PUT(context) {
+  const { locals, request, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -69,6 +62,9 @@ export async function PUT({
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // 清除缓存
+    await cache.invalidate({ tags: ["novel", updatedNovel[0].id] });
 
     // Handle authorId update
     if (authorId !== undefined) {
@@ -168,8 +164,8 @@ export async function PUT({
   }
 }
 
-export async function DELETE(context: any) {
-  const { locals, params } = context;
+export async function DELETE(context) {
+  const { locals, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -201,6 +197,9 @@ export async function DELETE(context: any) {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // 清除缓存
+    await cache.invalidate({ tags: ["novel", deletedNovel[0].id] });
 
     try {
       if (deletedNovel[0].cover) {

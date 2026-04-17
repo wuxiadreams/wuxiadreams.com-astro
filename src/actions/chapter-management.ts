@@ -334,7 +334,7 @@ export const chapterManagement = {
     input: z.object({
       chapterId: z.string(),
     }),
-    handler: async ({ chapterId }, { locals }) => {
+    handler: async ({ chapterId }, { locals, cache }) => {
       await getAuthenticatedAdmin(locals);
 
       const targetChapter = await db
@@ -346,6 +346,10 @@ export const chapterManagement = {
       if (!targetChapter) {
         throw new Error("章节不存在");
       }
+
+      await cache.invalidate({
+        tags: ["chapter", targetChapter.novelId, String(targetChapter.number)],
+      });
 
       if (targetChapter.fileKey) {
         await deleteSingleFile(targetChapter.fileKey, R2_NOVELS_BUCKET);
