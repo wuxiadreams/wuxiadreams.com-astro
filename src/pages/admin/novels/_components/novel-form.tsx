@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
 import { UploadCloud } from "lucide-react";
+import { useStore } from "@nanostores/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { reactQueryClient } from "@/stores/query";
 import {
   Form,
   FormControl,
@@ -17,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import MdEditor from "@/components/md-editor";
 import { sanitizeSlug } from "@/lib/utils";
 import { MultiSelect } from "./multi-select";
@@ -61,9 +65,24 @@ export default function NovelForm({
   initialData?: FormValues & { chapterCount?: number };
   novelId?: string;
 }) {
-  console.log("initialData", initialData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isChapterDialogOpen, setIsChapterDialogOpen] = useState(false);
+  const queryClient = useStore(reactQueryClient);
+  const isEditing = !!novelId;
+  const url = isEditing ? `/api/novels/${novelId}` : "/api/novels";
+  const method = isEditing ? "PUT" : "POST";
+
+  const { data: fetchedData, isLoading: isFetching } = useQuery(
+    {
+      queryKey: ["novel", novelId],
+      queryFn: async () => {
+        if (!novelId) return null;
+        const res = await fetch(`/api/novels/${novelId}`);
+        if (!res.ok) throw new Error("Failed to fetch novel");
+        return res.json() as Promise<FormValues & { chapterCount?: number }>;
+      },
+      enabled: isEditing,
+    },
+    queryClient,
+  );
 
   const form = useForm<FormValues>({
     defaultValues: initialData || {
@@ -88,52 +107,108 @@ export default function NovelForm({
     },
   });
 
-  const autoSlug = sanitizeSlug(form.watch("title") || "");
-
-  const onSubmit = async (values: FormValues) => {
-    try {
-      setIsSubmitting(true);
-
-      const autoSlug = sanitizeSlug(values.title);
-      const finalSlug = values.slug || autoSlug;
-
-      const payload = {
-        ...values,
-        slug: finalSlug,
-      };
-
-      const isEditing = !!novelId;
-      const url = isEditing ? `/api/novels/${novelId}` : "/api/novels";
-      const method = isEditing ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = (await res.json()) as { error?: string };
-        throw new Error(
-          errorData.error || (isEditing ? "更新小说失败" : "创建小说失败"),
-        );
-      }
-
-      const resultData = (await res.json()) as { id?: string };
-
-      toast.success(isEditing ? "小说更新成功" : "小说创建成功");
-
-      if (!isEditing && resultData.id) {
-        setTimeout(() => {
-          window.location.href = `/admin/novels/${resultData.id}`;
-        }, 1000);
-      }
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    if (fetchedData) {
+      form.reset(fetchedData);
     }
+  }, [fetchedData, form]);
+
+  const autoSlug = sanitizeSlug(form.watch("title") || "");
+  const mutation = useMutation(
+    {
+      mutationFn: async (values: FormValues) => {
+        const autoSlug = sanitizeSlug(values.title);
+        const finalSlug = values.slug || autoSlug;
+        const payload = {
+          ...values,
+          slug: finalSlug,
+        };
+
+        return fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      },
+      onSuccess: () => {
+        toast.success(isEditing ? "小说更新成功" : "小说创建成功");
+        queryClient.invalidateQueries({ queryKey: ["novels"] });
+        if (isEditing) {
+          queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
+        }
+      },
+      onError: (error: any) => {
+        toast.error(error.message);
+      },
+    },
+    queryClient,
+  );
+  const onSubmit = async (values: FormValues) => {
+    mutation.mutate(values);
   };
+
+  if (isEditing && isFetching) {
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-9 gap-8">
+          <div className="lg:col-span-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-[200px] w-[150px] rounded-lg" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[100px]" />
+              <Skeleton className="h-[300px] w-full" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-3">
+            <div className="flex flex-col gap-4">
+              <Skeleton className="h-[150px] w-full rounded-xl" />
+              <Skeleton className="h-[300px] w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -207,7 +282,7 @@ export default function NovelForm({
                         r2Domain={r2Domain}
                         value={field.value || ""}
                         onChange={field.onChange}
-                        disabled={isSubmitting}
+                        disabled={mutation.isPending}
                       />
                     </FormControl>
                     <FormMessage />
@@ -503,13 +578,21 @@ export default function NovelForm({
               <div className="flex flex-col gap-4">
                 <ChaptersInfo
                   novelId={novelId}
-                  chapterCount={initialData?.chapterCount || 0}
+                  chapterCount={form.watch("chapterCount") || 0}
                 />
                 <ChaptersUploader
                   locale="zh"
                   novel={
                     { id: novelId, title: initialData?.title || "" } as Novel
                   }
+                  onUploadSuccess={() => {
+                    queryClient.invalidateQueries({
+                      queryKey: ["novel", novelId],
+                    });
+                    queryClient.invalidateQueries({
+                      queryKey: ["chapterList", novelId],
+                    });
+                  }}
                 />
               </div>
             ) : (
@@ -536,9 +619,9 @@ export default function NovelForm({
                         type="submit"
                         variant="outline"
                         size="sm"
-                        disabled={isSubmitting}
+                        disabled={mutation.isPending}
                       >
-                        {isSubmitting ? (
+                        {mutation.isPending ? (
                           <Spinner className="mr-2 h-3 w-3" />
                         ) : (
                           "立即保存小说"
@@ -557,12 +640,12 @@ export default function NovelForm({
             type="button"
             variant="outline"
             onClick={() => window.history.back()}
-            disabled={isSubmitting}
+            disabled={mutation.isPending}
           >
             取消
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Spinner className="mr-2 h-4 w-4" />}
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending && <Spinner className="mr-2 h-4 w-4" />}
             {novelId ? "保存修改" : "创建小说"}
           </Button>
         </div>

@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { useStore } from "@nanostores/react";
+import { reactQueryClient } from "@/stores/query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { List } from "lucide-react";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
@@ -39,54 +42,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
-interface Chapter {
-  id: string;
-  number: number;
-  title: string | null;
-  wordCount: number | null;
-  published: boolean | null;
-}
-
 export function ChapterListDialog({ novelId }: { novelId: string }) {
   const [open, setOpen] = useState(false);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState(false);
   const pageSize = 10;
+  const queryClient = useStore(reactQueryClient);
 
+  const { data: chaptersData, isPending: isLoading } = useQuery(
+    {
+      queryKey: ["chapterList", novelId, page, pageSize],
+      queryFn: async () => {
+        return await actions.chapterManagement.getNovelChapters({
+          novelId,
+          page,
+          pageSize,
+        });
+      },
+    },
+    queryClient,
+  );
+  const chapters = chaptersData?.data?.chapters || [];
+  const totalCount = chaptersData?.data?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
-
-  const fetchChapters = async (currentPage: number) => {
-    setIsLoading(true);
-    try {
-      const res = await actions.chapterManagement.getNovelChapters({
-        novelId,
-        page: currentPage,
-        pageSize,
-      });
-
-      if (res.error) {
-        toast.error(res.error.message || "获取章节列表失败");
-        return;
-      }
-
-      if (res.data) {
-        setChapters(res.data.chapters as any);
-        setTotalCount(res.data.totalCount);
-      }
-    } catch (error: any) {
-      toast.error(error.message || "获取章节列表失败");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      fetchChapters(page);
-    }
-  }, [open, page, novelId]);
 
   const handlePrevious = () => {
     if (page > 1) {
@@ -102,62 +79,64 @@ export function ChapterListDialog({ novelId }: { novelId: string }) {
   // 当前操作章节
   const [actionType, setActionType] = useState<string | null>(null);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  const [isActionPending, setIsActionPending] = useState(false);
   const currentChapter = chapters.find((chapter) => chapter.id === currentId);
 
+  const statusMutation = useMutation(
+    {
+      mutationFn: async (chapterId: string) => {
+        return actions.chapterManagement.updateChapterStatus({
+          chapterId,
+          published: !currentChapter?.published,
+        });
+      },
+      onSuccess: () => {
+        toast.success("状态更新成功");
+        queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
+        queryClient.invalidateQueries({
+          queryKey: ["chapterList", novelId, page, pageSize],
+        });
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "章节状态更新失败");
+      },
+    },
+    queryClient,
+  );
   const handleStatusChange = async (chapterId: string, published: boolean) => {
     setActionType("status");
     setCurrentId(chapterId);
-    setIsActionPending(true);
 
-    try {
-      const res = await actions.chapterManagement.updateChapterStatus({
-        chapterId,
-        published: !published,
-      });
-
-      if (res.error) {
-        throw new Error(res.error.message || "更新状态失败");
-      }
-
-      toast.success("状态更新成功");
-      fetchChapters(page); // 重新加载当前页
-    } catch (error: any) {
-      toast.error(error.message || "章节状态更新失败");
-    } finally {
-      setIsActionPending(false);
-    }
+    statusMutation.mutate(chapterId);
   };
 
   // 删除章节
   const [showDelModal, setShowDelModal] = useState<boolean>(false);
 
+  const delMutation = useMutation(
+    {
+      mutationFn: async (chapterId: string) => {
+        return actions.chapterManagement.deleteChapter({
+          chapterId,
+        });
+      },
+      onSuccess: () => {
+        toast.success("章节删除成功");
+        setShowDelModal(false);
+        queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
+        queryClient.invalidateQueries({
+          queryKey: ["chapterList", novelId, page, pageSize],
+        });
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "章节删除失败");
+      },
+    },
+    queryClient,
+  );
   const handleDelete = async () => {
     if (!currentId || actionType !== "delete") return;
 
-    setIsActionPending(true);
-    try {
-      const res = await actions.chapterManagement.deleteChapter({
-        chapterId: currentId,
-      });
-
-      if (res.error) {
-        throw new Error(res.error.message || "删除章节失败");
-      }
-
-      toast.success("章节删除成功");
-      setShowDelModal(false);
-      fetchChapters(page); // 重新加载当前页
-
-      // 触发页面刷新，以便外部统计更新
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (error: any) {
-      toast.error(error.message || "章节删除失败");
-    } finally {
-      setIsActionPending(false);
-    }
+    delMutation.mutate(currentId);
   };
 
   // 跳转
@@ -237,12 +216,12 @@ export function ChapterListDialog({ novelId }: { novelId: string }) {
                           size="sm"
                           variant={chapter.published ? "secondary" : "default"}
                           className="text-sm cursor-pointer"
-                          disabled={isActionPending}
+                          disabled={delMutation.isPending}
                           onClick={() =>
                             handleStatusChange(chapter.id, !!chapter.published)
                           }
                         >
-                          {isActionPending &&
+                          {delMutation.isPending &&
                             actionType === "status" &&
                             chapter.id === currentId && (
                               <Spinner className="mr-2 h-3 w-3" />
@@ -343,10 +322,10 @@ export function ChapterListDialog({ novelId }: { novelId: string }) {
               <Button
                 variant="destructive"
                 className="cursor-pointer"
-                disabled={isActionPending}
+                disabled={delMutation.isPending}
                 onClick={handleDelete}
               >
-                {isActionPending && <Spinner className="mr-2 h-4 w-4" />}
+                {delMutation.isPending && <Spinner className="mr-2 h-4 w-4" />}
                 确认删除
               </Button>
             </AlertDialogFooter>

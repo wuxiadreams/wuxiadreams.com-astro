@@ -22,9 +22,11 @@ const MAX_CONCURRENT_UPLOADS = 10;
 export function ChaptersUploader({
   locale,
   novel,
+  onUploadSuccess,
 }: {
   locale: string;
   novel: Novel;
+  onUploadSuccess?: (count: number) => void;
 }) {
   const { id: novelId } = novel;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -290,9 +292,15 @@ export function ChaptersUploader({
       } else {
         setStatus("成功! 所有章节数据已上传并保存");
       }
+
       setFile(null);
+
       if (inputRef.current) {
         inputRef.current.value = "";
+      }
+
+      if (onUploadSuccess) {
+        onUploadSuccess(successfulMetadata.length);
       }
     } catch (error) {
       console.log(error);

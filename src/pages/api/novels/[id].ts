@@ -6,6 +6,78 @@ import { copySingleFile } from "@/lib/r2";
 import { actions } from "astro:actions";
 import type { APIContext } from "astro";
 
+export async function GET(context: APIContext) {
+  const { locals, params } = context;
+  const email = locals?.user?.email;
+  const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
+
+  if (!email || !adminEmails.includes(email || "")) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const novelId = params.id;
+    if (!novelId) {
+      return new Response(JSON.stringify({ error: "无效的小说 ID" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const novelData = await db.query.novel.findFirst({
+      where: eq(novel.id, novelId),
+    });
+
+    if (!novelData) {
+      return new Response(JSON.stringify({ error: "小说不存在" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const authorMapping = await db.query.novelAuthor.findFirst({
+      where: eq(novelAuthor.novelId, novelId),
+    });
+
+    const tagMappings = await db.query.novelTag.findMany({
+      where: eq(novelTag.novelId, novelId),
+    });
+
+    const categoryMappings = await db.query.novelCategory.findMany({
+      where: eq(novelCategory.novelId, novelId),
+    });
+
+    const initialData = {
+      ...novelData,
+      status: novelData.status as "ongoing" | "completed",
+      cover: novelData.cover || "",
+      synopsis: novelData.synopsis || "",
+      officialLink: novelData.officialLink || "",
+      translatedLink: novelData.translatedLink || "",
+      authorId: authorMapping?.authorId || "",
+      tags: tagMappings.map((t) => String(t.tagId)),
+      categories: categoryMappings.map((c) => String(c.categoryId)),
+    };
+
+    return new Response(JSON.stringify(initialData), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
+    console.error("Failed to fetch novel:", error);
+    return new Response(
+      JSON.stringify({ error: "获取小说数据失败: " + error.message }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+}
+
 export async function PUT(context: APIContext) {
   const { locals, request, params, cache } = context;
   const email = locals?.user?.email;
@@ -148,8 +220,18 @@ export async function PUT(context: APIContext) {
       }
     }
 
+    // Fetch the updated chapterCount just in case it was modified externally (like via chapter upload)
+    const [{ chapterCount: finalChapterCount }] = await db
+      .select({ chapterCount: novel.chapterCount })
+      .from(novel)
+      .where(eq(novel.id, novelId));
+
     return new Response(
-      JSON.stringify({ ...updatedNovel[0], cover: finalCover }),
+      JSON.stringify({
+        ...updatedNovel[0],
+        cover: finalCover,
+        chapterCount: finalChapterCount,
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },

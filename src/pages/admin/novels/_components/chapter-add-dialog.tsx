@@ -5,6 +5,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { actions } from "astro:actions";
 import { toast } from "sonner";
+import { useStore } from "@nanostores/react";
+import { useMutation } from "@tanstack/react-query";
+import { reactQueryClient } from "@/stores/query";
 import { getNovelWordCount } from "@/lib/file";
 import {
   Dialog,
@@ -47,7 +50,7 @@ export function ChapterAddDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useStore(reactQueryClient);
 
   const defaultValues = {
     number: chapterCount + 1,
@@ -60,111 +63,108 @@ export function ChapterAddDialog({
     defaultValues,
   });
 
-  const onSubmit = async (values: z.infer<typeof chapterFormSchema>) => {
-    if (!file) {
-      toast.error("请上传章节 TXT 文件");
-      return;
-    }
+  const mutation = useMutation(
+    {
+      mutationFn: async (values: z.infer<typeof chapterFormSchema>) => {
+        if (!file) {
+          throw new Error("请上传章节 TXT 文件");
+        }
 
-    if (!file.name.endsWith(".txt")) {
-      toast.error("请上传有效的 .txt 文件");
-      return;
-    }
+        if (!file.name.endsWith(".txt")) {
+          throw new Error("请上传有效的 .txt 文件");
+        }
 
-    try {
-      setIsSubmitting(true);
-
-      // 0. 校验章节序号是否已存在
-      const checkRes = await actions.chapterManagement.checkChapterExists({
-        novelId,
-        number: values.number,
-      });
-
-      if (checkRes.error) {
-        throw new Error("校验章节序号失败");
-      }
-
-      if (checkRes.data?.exists) {
-        throw new Error(
-          `章节序号 ${values.number} 已经存在，请使用其他序号或前往章节列表删除旧章节`,
-        );
-      }
-
-      // 1. 读取文件内容获取字数
-      const text = await file.text();
-      const { count: wordCount } = getNovelWordCount(text);
-
-      // 2. 生成上传预签名 URL
-      const filename = `${values.number}_${values.title || "Chapter"}.txt`;
-
-      const urlsRes = await actions.chapterManagement.generateChapterUploadUrls(
-        {
+        // 0. 校验章节序号是否已存在
+        const checkRes = await actions.chapterManagement.checkChapterExists({
           novelId,
-          chapterDetails: [{ filename, contentType: "text/plain" }],
-        },
-      );
+          number: values.number,
+        });
 
-      if (
-        urlsRes.error ||
-        !urlsRes.data?.urls ||
-        urlsRes.data.urls.length === 0
-      ) {
-        throw new Error(urlsRes.error?.message || "无法获取上传链接");
-      }
+        if (checkRes.error) {
+          throw new Error("校验章节序号失败");
+        }
 
-      const uploadUrlInfo = urlsRes.data.urls[0];
+        if (checkRes.data?.exists) {
+          throw new Error(
+            `章节序号 ${values.number} 已经存在，请使用其他序号或前往章节列表删除旧章节`,
+          );
+        }
 
-      // 3. 上传到 R2
-      const uploadRes = await fetch(uploadUrlInfo.presignedUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": "text/plain" },
-      });
+        // 1. 读取文件内容获取字数
+        const text = await file.text();
+        const { count: wordCount } = getNovelWordCount(text);
 
-      if (!uploadRes.ok) {
-        throw new Error(`文件上传失败: ${uploadRes.statusText}`);
-      }
+        // 2. 生成上传预签名 URL
+        const filename = `${values.number}_${values.title || "Chapter"}.txt`;
 
-      // 4. 保存数据库元数据
-      const saveRes = await actions.chapterManagement.saveChapterMetadata({
-        novelId,
-        chaptersData: [
-          {
+        const urlsRes =
+          await actions.chapterManagement.generateChapterUploadUrls({
             novelId,
-            number: values.number,
-            title: values.title || "",
-            wordCount,
-            fileKey: uploadUrlInfo.file_key,
-            published: values.published,
-          },
-        ],
-      });
+            chapterDetails: [{ filename, contentType: "text/plain" }],
+          });
 
-      if (saveRes.error) {
-        throw new Error(saveRes.error.message || "保存章节信息失败");
-      }
+        if (
+          urlsRes.error ||
+          !urlsRes.data?.urls ||
+          urlsRes.data.urls.length === 0
+        ) {
+          throw new Error(urlsRes.error?.message || "无法获取上传链接");
+        }
 
-      toast.success("章节新建成功");
-      onOpenChange(false);
+        const uploadUrlInfo = urlsRes.data.urls[0];
 
-      // 重置表单状态
-      form.reset({
-        number: values.number + 1,
-        title: "",
-        published: false,
-      });
-      setFile(null);
+        // 3. 上传到 R2
+        const uploadRes = await fetch(uploadUrlInfo.presignedUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": "text/plain" },
+        });
 
-      // 触发页面刷新，以便外部列表或表单更新状态
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "操作失败");
-    } finally {
-      setIsSubmitting(false);
-    }
+        if (!uploadRes.ok) {
+          throw new Error(`文件上传失败: ${uploadRes.statusText}`);
+        }
+
+        // 4. 保存数据库元数据
+        const saveRes = await actions.chapterManagement.addChapter({
+          novelId,
+          number: values.number,
+          title: values.title || "",
+          wordCount,
+          fileKey: uploadUrlInfo.file_key,
+          published: values.published,
+        });
+
+        if (saveRes.error) {
+          throw new Error(saveRes.error.message || "保存章节信息失败");
+        }
+
+        return values;
+      },
+      onSuccess: (values) => {
+        toast.success("章节新建成功");
+        onOpenChange(false);
+
+        // 重置表单状态
+        form.reset({
+          number: values.number + 1,
+          title: "",
+          published: false,
+        });
+        setFile(null);
+
+        queryClient.invalidateQueries({ queryKey: ["novel", novelId] });
+        queryClient.invalidateQueries({ queryKey: ["chapters", novelId] });
+      },
+      onError: (error: any) => {
+        console.error(error);
+        toast.error(error.message || "操作失败");
+      },
+    },
+    queryClient,
+  );
+
+  const onSubmit = async (values: z.infer<typeof chapterFormSchema>) => {
+    mutation.mutate(values);
   };
 
   return (
@@ -283,10 +283,10 @@ export function ChapterAddDialog({
                 <Button
                   className="w-full"
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={mutation.isPending}
                 >
-                  {isSubmitting && <Spinner className="mr-2 h-4 w-4" />}
-                  {isSubmitting ? "上传并保存中..." : "保存章节"}
+                  {mutation.isPending && <Spinner className="mr-2 h-4 w-4" />}
+                  {mutation.isPending ? "上传并保存中..." : "保存章节"}
                 </Button>
               </form>
             </Form>

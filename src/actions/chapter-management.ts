@@ -167,8 +167,19 @@ export const chapterManagement = {
         }),
       ),
     }),
-    handler: async ({ novelId, chaptersData }, { locals }) => {
+    handler: async ({ novelId, chaptersData }, { locals, cache }) => {
       await getAuthenticatedAdmin(locals);
+
+      // 先删除小说关联的所有旧章节数据
+      try {
+        await db
+          .delete(chapterSchema)
+          .where(eq(chapterSchema.novelId, novelId));
+        await cache.invalidate({ tags: [`chapters:${novelId}`] });
+      } catch (e) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Failed to delete existing chapters: ${errorMsg}`);
+      }
 
       const mappedData = chaptersData.map((c) => ({
         ...c,
@@ -195,7 +206,7 @@ export const chapterManagement = {
           await db
             .update(novel)
             .set({
-              chapterCount: sql`${novel.chapterCount} + ${chaptersData.length}`,
+              chapterCount: chaptersData.length,
               updatedAt: new Date(),
             })
             .where(eq(novel.id, novelId));
@@ -278,6 +289,8 @@ export const chapterManagement = {
       }
     },
   }),
+
+  // 获取小说章节
   getNovelChapters: defineAction({
     accept: "json",
     input: z.object({
@@ -321,6 +334,7 @@ export const chapterManagement = {
       }
     },
   }),
+  // 更新章节状态
   updateChapterStatus: defineAction({
     accept: "json",
     input: z.object({
@@ -338,6 +352,51 @@ export const chapterManagement = {
       return { success: true };
     },
   }),
+  // 添加单个章节
+  addChapter: defineAction({
+    accept: "json",
+    input: z.object({
+      novelId: z.string(),
+      number: z.number(),
+      title: z.string(),
+      wordCount: z.number().default(0),
+      fileKey: z.string(),
+      published: z.boolean().default(false),
+      publishedAt: z.union([z.date(), z.string(), z.number()]).optional(),
+    }),
+    handler: async (input, { locals }) => {
+      await getAuthenticatedAdmin(locals);
+
+      const { novelId, ...chapterData } = input;
+
+      try {
+        await db.insert(chapterSchema).values({
+          ...chapterData,
+          novelId,
+          publishedAt: chapterData.publishedAt
+            ? new Date(chapterData.publishedAt)
+            : new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        // 更新小说的章节数量 (直接加 1)
+        await db
+          .update(novel)
+          .set({
+            chapterCount: sql`${novel.chapterCount} + 1`,
+            updatedAt: new Date(),
+          })
+          .where(eq(novel.id, novelId));
+
+        return { success: true };
+      } catch (e) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Failed to add chapter: ${errorMsg}`);
+      }
+    },
+  }),
+  // 删除单个章节
   deleteChapter: defineAction({
     accept: "json",
     input: z.object({
@@ -378,6 +437,7 @@ export const chapterManagement = {
       return { success: true };
     },
   }),
+  // 检查章节是否存在
   checkChapterExists: defineAction({
     accept: "json",
     input: z.object({
