@@ -1,4 +1,5 @@
 ---
+import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { actions } from "astro:actions";
 import { formatDate } from "@/lib/utils";
@@ -7,6 +8,7 @@ import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
 
 const { slug, number } = Astro.params;
 const chapterNumber = Number(number);
+const r2Domain = env.R2_DOMAIN;
 
 if (!slug || isNaN(chapterNumber)) {
   return Astro.redirect("/novels");
@@ -62,6 +64,37 @@ contentParagraphs =
     ? contentParagraphs.slice(1)
     : ["No content available."];
 
+// JSON-LD
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Book",
+  name: novelData.title,
+  description: novelData.synopsis,
+  image: `https://${r2Domain}/${novelData.cover}`,
+  review: [
+    {
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: "Wuxiadreams",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        bestRating: 5,
+        worstRating: 0,
+        ratingValue: novelData.score,
+      },
+    },
+  ],
+  aggregateRating: {
+    "@type": "AggregateRating",
+    bestRating: 5,
+    worstRating: 0,
+    ratingValue: novelData.score,
+    ratingCount: novelData.reviewCount,
+  },
+};
+
 Astro.cache.set({
   maxAge: 86400,
   swr: 60,
@@ -97,6 +130,12 @@ Astro.cache.set({
       margin-bottom: 0;
     }
   </style>
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(jsonLd)}
+  />
 
   <main class="container mx-auto max-w-4xl px-4 py-8 sm:py-12">
     {/* 面包屑导航 */}
