@@ -1,124 +1,93 @@
+globalThis.process ??= {};
+globalThis.process.env ??= {};
 import { env } from "cloudflare:workers";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
-import { copySingleFile } from "@/lib/r2";
-import { actions } from "astro:actions";
-import type { APIContext } from "astro";
-
-export async function GET(context: APIContext) {
+import { d as db } from "./db_1qztcB8G.mjs";
+import { n as novel, e as eq, j as novelAuthor, k as novelTag, m as novelCategory } from "./schema_98e5FuKX.mjs";
+import { i as copySingleFile } from "./r2_fNuLAT3E.mjs";
+import { a as actions } from "./server_B0Fce2x_.mjs";
+async function GET(context) {
   const { locals, params } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
-
   if (!email || !adminEmails.includes(email || "")) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   }
-
   try {
     const novelId = params.id;
     if (!novelId) {
       return new Response(JSON.stringify({ error: "无效的小说 ID" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     }
-
     const novelData = await db.query.novel.findFirst({
-      where: eq(novel.id, novelId),
-      with: {
-        novelAuthors: {
-          with: { author: true },
-        },
-        novelTags: {
-          with: { tag: true },
-        },
-        novelCategories: {
-          with: { category: true },
-        },
-      },
+      where: eq(novel.id, novelId)
     });
-
     if (!novelData) {
       return new Response(JSON.stringify({ error: "小说不存在" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     }
-
-    const authorMappings = novelData.novelAuthors || [];
-    const tagMappings = novelData.novelTags || [];
-    const categoryMappings = novelData.novelCategories || [];
-
+    const authorMapping = await db.query.novelAuthor.findFirst({
+      where: eq(novelAuthor.novelId, novelId)
+    });
+    const tagMappings = await db.query.novelTag.findMany({
+      where: eq(novelTag.novelId, novelId)
+    });
+    const categoryMappings = await db.query.novelCategory.findMany({
+      where: eq(novelCategory.novelId, novelId)
+    });
     const initialData = {
       ...novelData,
-      status: novelData.status as "ongoing" | "completed",
+      status: novelData.status,
       cover: novelData.cover || "",
       synopsis: novelData.synopsis || "",
       officialLink: novelData.officialLink || "",
       translatedLink: novelData.translatedLink || "",
-      authors: authorMappings.map((a) => String(a.authorId)),
+      authorId: authorMapping?.authorId || "",
       tags: tagMappings.map((t) => String(t.tagId)),
-      categories: categoryMappings.map((c) => String(c.categoryId)),
-      _initialOptions: {
-        authors: authorMappings.map((a) => ({
-          label: a.author.name,
-          value: String(a.authorId),
-        })),
-        tags: tagMappings.map((t) => ({
-          label: t.tag.name,
-          value: String(t.tagId),
-        })),
-        categories: categoryMappings.map((c) => ({
-          label: c.category.name,
-          value: String(c.categoryId),
-        })),
-      },
+      categories: categoryMappings.map((c) => String(c.categoryId))
     };
-
     return new Response(JSON.stringify(initialData), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to fetch novel:", error);
     return new Response(
       JSON.stringify({ error: "获取小说数据失败: " + error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 }
-
-export async function PUT(context: APIContext) {
+async function PUT(context) {
   const { locals, request, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
-
   if (!email || !adminEmails.includes(email || "")) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   }
-
   try {
     const novelId = params.id;
     if (!novelId) {
       return new Response(JSON.stringify({ error: "无效的小说 ID" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     }
-
-    const body = (await request.json()) as Record<string, any>;
+    const body = await request.json();
     const {
-      authors,
+      authorId,
       tags,
       categories,
       id,
@@ -132,188 +101,161 @@ export async function PUT(context: APIContext) {
       score,
       ...novelUpdateData
     } = body;
-
-    // Support partial updates
-    const updatedNovel = await db
-      .update(novel)
-      .set({
-        ...novelUpdateData,
-        reviewCount:
-          reviewCount !== undefined ? Number(reviewCount) : undefined,
-        score: score !== undefined ? Number(score) : undefined,
-        chapterCount:
-          chapterCount !== undefined ? Number(chapterCount) : undefined,
-        updatedAt: new Date(),
-      })
-      .where(eq(novel.id, novelId))
-      .returning();
-
+    const updatedNovel = await db.update(novel).set({
+      ...novelUpdateData,
+      reviewCount: reviewCount !== void 0 ? Number(reviewCount) : void 0,
+      score: score !== void 0 ? Number(score) : void 0,
+      chapterCount: chapterCount !== void 0 ? Number(chapterCount) : void 0,
+      updatedAt: /* @__PURE__ */ new Date()
+    }).where(eq(novel.id, novelId)).returning();
     if (updatedNovel.length === 0) {
       return new Response(JSON.stringify({ error: "小说不存在" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     }
-
-    // 清除缓存
     await cache.invalidate({ tags: [`novel:${updatedNovel[0].id}`] });
-
-    // Handle authors update
-    if (authors !== undefined) {
-      await db.delete(novelAuthor).where(eq(novelAuthor.novelId, novelId));
-      if (Array.isArray(authors) && authors.length > 0) {
-        const authorValues = authors.map((authorId) => ({
-          novelId,
-          authorId: String(authorId),
-          createdAt: new Date(),
-        }));
-        await db.insert(novelAuthor).values(authorValues);
+    if (authorId !== void 0) {
+      if (authorId) {
+        const existingMapping = await db.query.novelAuthor.findFirst({
+          where: eq(novelAuthor.novelId, novelId)
+        });
+        if (existingMapping) {
+          await db.update(novelAuthor).set({ authorId }).where(eq(novelAuthor.novelId, novelId));
+        } else {
+          await db.insert(novelAuthor).values({
+            novelId,
+            authorId,
+            createdAt: /* @__PURE__ */ new Date()
+          });
+        }
+      } else {
+        await db.delete(novelAuthor).where(eq(novelAuthor.novelId, novelId));
       }
     }
-
-    // Handle tags update
-    if (tags !== undefined) {
+    if (tags !== void 0) {
       await db.delete(novelTag).where(eq(novelTag.novelId, novelId));
       if (Array.isArray(tags) && tags.length > 0) {
         const tagValues = tags.map((tagId) => ({
           novelId,
           tagId: Number(tagId),
-          createdAt: new Date(),
+          createdAt: /* @__PURE__ */ new Date()
         }));
         await db.insert(novelTag).values(tagValues);
       }
     }
-
-    // Handle categories update
-    if (categories !== undefined) {
+    if (categories !== void 0) {
       await db.delete(novelCategory).where(eq(novelCategory.novelId, novelId));
       if (Array.isArray(categories) && categories.length > 0) {
         const categoryValues = categories.map((categoryId) => ({
           novelId,
           categoryId: Number(categoryId),
-          createdAt: new Date(),
+          createdAt: /* @__PURE__ */ new Date()
         }));
         await db.insert(novelCategory).values(categoryValues);
       }
     }
-
-    // Handle cover image relocation if uploaded a new temp image
     let finalCover = updatedNovel[0].cover;
     if (novelUpdateData.cover && novelUpdateData.cover.startsWith("temp/")) {
       const fileExtension = novelUpdateData.cover.split(".").pop();
       const sourceKey = novelUpdateData.cover;
       const destinationKey = `covers/${novelId}/cover.${fileExtension}`;
-
       const { error } = await copySingleFile({
-        bucket: env.R2_ASSETS_BUCKET!,
+        bucket: env.R2_ASSETS_BUCKET,
         source: `${env.R2_ASSETS_BUCKET}/${sourceKey}`,
         destination: destinationKey,
         contentType: `image/${fileExtension}`,
-        cacheControl: "public, max-age=31536000, immutable",
+        cacheControl: "public, max-age=31536000, immutable"
       });
-
       if (!error) {
         finalCover = destinationKey;
-        // Update novel record with new cover path
-        await db
-          .update(novel)
-          .set({ cover: finalCover })
-          .where(eq(novel.id, novelId));
+        await db.update(novel).set({ cover: finalCover }).where(eq(novel.id, novelId));
       } else {
         console.error("Failed to copy cover image:", error);
       }
     }
-
-    // Fetch the updated chapterCount just in case it was modified externally (like via chapter upload)
-    const [{ chapterCount: finalChapterCount }] = await db
-      .select({ chapterCount: novel.chapterCount })
-      .from(novel)
-      .where(eq(novel.id, novelId));
-
+    const [{ chapterCount: finalChapterCount }] = await db.select({ chapterCount: novel.chapterCount }).from(novel).where(eq(novel.id, novelId));
     return new Response(
       JSON.stringify({
         ...updatedNovel[0],
         cover: finalCover,
-        chapterCount: finalChapterCount,
+        chapterCount: finalChapterCount
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
+        headers: { "Content-Type": "application/json" }
+      }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to update novel:", error);
     return new Response(
       JSON.stringify({ error: "更新小说失败: " + error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 }
-
-export async function DELETE(context: APIContext) {
+async function DELETE(context) {
   const { locals, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
-
   if (!email || !adminEmails.includes(email || "")) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
   }
-
   try {
     const novelId = params.id;
-
     if (!novelId) {
       return new Response(JSON.stringify({ error: "无效的小说 ID" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     }
-
-    const deletedNovel = await db
-      .delete(novel)
-      .where(eq(novel.id, novelId))
-      .returning();
-
+    const deletedNovel = await db.delete(novel).where(eq(novel.id, novelId)).returning();
     if (deletedNovel.length === 0) {
       return new Response(JSON.stringify({ error: "小说不存在" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     }
-
-    // 清除缓存
     await cache.invalidate({ tags: [`novel:${deletedNovel[0].id}`] });
-
     try {
       if (deletedNovel[0].cover) {
         const fd = new FormData();
         fd.append("fileKey", deletedNovel[0].cover);
-        await context.callAction(actions.cover.delete, fd as any);
+        await context.callAction(actions.cover.delete, fd);
       }
       await context.callAction(actions.chapterManagement.deleteChapterFiles, {
-        novelId,
+        novelId
       });
     } catch (e) {
       console.error("删除关联文件失败:", e);
     }
-
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
-  } catch (error: any) {
+  } catch (error) {
     return new Response(
       JSON.stringify({ error: "删除小说失败: " + error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 }
+const _page = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  DELETE,
+  GET,
+  PUT
+}, Symbol.toStringTag, { value: "Module" }));
+const page = () => _page;
+export {
+  page
+};

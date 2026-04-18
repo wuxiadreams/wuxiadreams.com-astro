@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "astro" generated at 2026-04-18T13:16:50.259Z.

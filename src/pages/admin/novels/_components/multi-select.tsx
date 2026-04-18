@@ -29,6 +29,7 @@ interface MultiSelectProps {
   placeholder?: string;
   fetchUrl: string;
   emptyMessage?: string;
+  initialOptions?: Option[];
 }
 
 export function MultiSelect({
@@ -37,6 +38,7 @@ export function MultiSelect({
   placeholder = "选择...",
   fetchUrl,
   emptyMessage = "未找到结果",
+  initialOptions = [],
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [options, setOptions] = React.useState<Option[]>([]);
@@ -44,7 +46,17 @@ export function MultiSelect({
   const [search, setSearch] = React.useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const [selectedOptions, setSelectedOptions] = React.useState<Option[]>([]);
+  const [selectedOptions, setSelectedOptions] = React.useState<Option[]>(initialOptions);
+
+  React.useEffect(() => {
+    if (initialOptions && initialOptions.length > 0) {
+      setSelectedOptions((prev) => {
+        const map = new Map(prev.map((p) => [p.value, p]));
+        initialOptions.forEach((opt) => map.set(opt.value, opt));
+        return Array.from(map.values());
+      });
+    }
+  }, [initialOptions]);
 
   React.useEffect(() => {
     let active = true;

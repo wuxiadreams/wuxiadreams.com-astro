@@ -21,13 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import MdEditor from "@/components/md-editor";
 import { sanitizeSlug } from "@/lib/utils";
 import { MultiSelect } from "./multi-select";
@@ -56,7 +49,7 @@ const formSchema = z.object({
   seoDescription: z.string().optional(),
   published: z.boolean().default(false),
   isPinned: z.boolean().default(false),
-  authorId: z.string().optional(),
+  authors: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   categories: z.array(z.string()).optional(),
 });
@@ -84,39 +77,42 @@ export default function NovelForm({
         if (!novelId) return null;
         const res = await fetch(`/api/novels/${novelId}`);
         if (!res.ok) throw new Error("Failed to fetch novel");
-        return res.json() as Promise<FormValues & { chapterCount?: number }>;
+        return res.json() as Promise<
+          FormValues & { chapterCount?: number; _initialOptions?: any }
+        >;
       },
       enabled: isEditing,
     },
     queryClient,
   );
 
+  const defaultValues = {
+    title: "",
+    titleAlt: "",
+    slug: "",
+    status: "ongoing" as any,
+    cover: "",
+    synopsis: "",
+    score: 0,
+    reviewCount: 0,
+    chapterCount: 0,
+    officialLink: "",
+    translatedLink: "",
+    seoTitle: "",
+    seoDescription: "",
+    published: false,
+    isPinned: false,
+    authors: [],
+    tags: [],
+    categories: [],
+  };
   const form = useForm<FormValues>({
-    defaultValues: initialData || {
-      title: "",
-      titleAlt: "",
-      slug: "",
-      status: "ongoing",
-      cover: "",
-      synopsis: "",
-      score: 0,
-      reviewCount: 0,
-      chapterCount: 0,
-      officialLink: "",
-      translatedLink: "",
-      seoTitle: "",
-      seoDescription: "",
-      published: false,
-      isPinned: false,
-      authorId: "",
-      tags: [],
-      categories: [],
-    },
+    defaultValues: initialData || { ...defaultValues },
   });
 
   useEffect(() => {
     if (fetchedData) {
-      form.reset(fetchedData);
+      form.reset({ ...fetchedData });
     }
   }, [fetchedData, form]);
 
@@ -314,20 +310,21 @@ export default function NovelForm({
 
               <FormField
                 control={form.control}
-                name="authorId"
+                name="authors"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>作者</FormLabel>
                     <FormControl>
                       <MultiSelect
-                        value={field.value ? [field.value] : []}
-                        onChange={(val) => field.onChange(val[0] || "")}
+                        value={field.value || []}
+                        onChange={field.onChange}
                         placeholder="搜索作者..."
                         fetchUrl="/api/authors"
                         emptyMessage="未找到作者"
+                        initialOptions={fetchedData?._initialOptions?.authors}
                       />
                     </FormControl>
-                    <FormDescription>请选择小说的作者（单选）</FormDescription>
+                    <FormDescription>请选择小说的作者（多选）</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -346,6 +343,9 @@ export default function NovelForm({
                         placeholder="搜索分类..."
                         fetchUrl="/api/categories"
                         emptyMessage="未找到分类"
+                        initialOptions={
+                          fetchedData?._initialOptions?.categories
+                        }
                       />
                     </FormControl>
                     <FormDescription>选择小说的分类（多选）</FormDescription>
@@ -367,6 +367,7 @@ export default function NovelForm({
                         placeholder="搜索标签..."
                         fetchUrl="/api/tags"
                         emptyMessage="未找到标签"
+                        initialOptions={fetchedData?._initialOptions?.tags}
                       />
                     </FormControl>
                     <FormDescription>选择小说的标签（多选）</FormDescription>
@@ -540,17 +541,15 @@ export default function NovelForm({
                       </FormLabel>
                       <FormDescription>小说的连载状态</FormDescription>
                     </div>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="选择小说状态" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="ongoing">连载中</SelectItem>
-                        <SelectItem value="completed">已完结</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <select
+                        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        {...field}
+                      >
+                        <option value="ongoing">连载中</option>
+                        <option value="completed">已完结</option>
+                      </select>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -663,7 +662,9 @@ export default function NovelForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              window.location.href = "/admin/novels";
+            }}
             disabled={mutation.isPending}
           >
             取消
