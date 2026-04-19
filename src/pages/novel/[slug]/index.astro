@@ -108,9 +108,10 @@ Astro.cache.set({
 ---
 
 <Layout
-  title={`${novelData.seoTitle || novelData.title} | Wuxia Dreams`}
+  title={novelData.seoTitle ? novelData.seoTitle : `${novelData.title} (novel)`}
+  }
   description={novelData.seoDescription ||
-    novelData.synopsis?.slice(0, 150) ||
+    `Read '${novelData.title}' Novel Online for Free. - ${novelData.synopsis}` ||
     ""}
 >
   <script
