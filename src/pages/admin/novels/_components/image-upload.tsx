@@ -20,7 +20,6 @@ export function ImageUpload({
   onChange,
   disabled,
 }: ImageUploadProps) {
-  console.log("value", value);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleValueChange = async (files: File[]) => {
