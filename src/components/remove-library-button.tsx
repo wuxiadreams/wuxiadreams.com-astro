@@ -13,8 +13,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function RemoveLibraryButton({ novelId, novelTitle }: { novelId: string, novelTitle: string }) {
-  const handleRemove = async () => {
+export function RemoveLibraryButton({
+  novelId,
+  novelTitle,
+}: {
+  novelId: string;
+  novelTitle: string;
+}) {
+  const handleRemove = async (e: React.MouseEvent) => {
     try {
       const res = await fetch(`/api/library/${novelId}`, {
         method: "DELETE",
@@ -36,26 +42,26 @@ export function RemoveLibraryButton({ novelId, novelTitle }: { novelId: string, 
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <button
-          onClick={(e) => e.preventDefault()}
-          className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-transform hover:scale-110 hover:bg-destructive/90 opacity-0 group-hover:opacity-100 focus:opacity-100"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition-transform hover:scale-110 hover:bg-destructive/90 opacity-0 group-hover:opacity-100 focus:opacity-100"
           aria-label="Remove from library"
         >
           <Trash2 className="h-4 w-4" />
         </button>
       </AlertDialogTrigger>
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Remove from library?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will remove <span className="font-semibold text-foreground">{novelTitle}</span> from your saved novels. You can always add it back later.
+            This will remove{" "}
+            <span className="font-semibold text-foreground">{novelTitle}</span>{" "}
+            from your saved novels. You can always add it back later.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
-              e.stopPropagation();
-              handleRemove();
+              handleRemove(e as any);
             }}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >

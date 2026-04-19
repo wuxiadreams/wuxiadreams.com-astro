@@ -66,13 +66,15 @@ const r2Domain = env.R2_DOMAIN;
         <div class="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {userLibrary.map(({ novel, addedAt }) => (
             <div class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-              <RemoveLibraryButton
-                client:load
-                novelId={novel.id}
-                novelTitle={novel.title}
-              />
+              <div class="absolute right-2 top-2 z-20">
+                <RemoveLibraryButton
+                  client:load
+                  novelId={novel.id}
+                  novelTitle={novel.title}
+                />
+              </div>
               <a href={`/novel/${novel.slug}`} class="flex h-full flex-col">
-                <div class="aspect-[2/3] w-full overflow-hidden bg-muted relative">
+                <div class="aspect-2/3 w-full overflow-hidden bg-muted relative">
                   <div class="absolute left-2 top-2 z-10">
                     <span
                       class={`inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-[10px] font-semibold lowercase tracking-wider shadow backdrop-blur-sm ${novel.status === "ongoing" ? "bg-chart-4/90 text-zinc-950" : "bg-primary/90 text-primary-foreground"}`}
