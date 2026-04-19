@@ -8,6 +8,9 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   output: "server",
   site: "https://wuxiadreams.com",
+  security: {
+    actionBodySizeLimit: 10 * 1024 * 1024, // 10 MB
+  },
   redirects: {
     "/en": "/",
   },
