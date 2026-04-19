@@ -143,6 +143,7 @@ export async function PUT(context: APIContext) {
         score: score !== undefined ? Number(score) : undefined,
         chapterCount:
           chapterCount !== undefined ? Number(chapterCount) : undefined,
+        viewCount: viewCount !== undefined ? Number(viewCount) : undefined,
         updatedAt: new Date(),
       })
       .where(eq(novel.id, novelId))

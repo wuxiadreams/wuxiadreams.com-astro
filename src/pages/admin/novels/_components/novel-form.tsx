@@ -39,6 +39,7 @@ const formSchema = z.object({
   score: z.coerce.number().min(0).optional(),
   reviewCount: z.coerce.number().min(0).optional(),
   chapterCount: z.coerce.number().min(0).default(0),
+  viewCount: z.coerce.number().min(0).default(0),
   officialLink: z.string().url("请输入有效的URL").optional().or(z.literal("")),
   translatedLink: z
     .string()
@@ -96,6 +97,7 @@ export default function NovelForm({
     score: 0,
     reviewCount: 0,
     chapterCount: 0,
+    viewCount: 0,
     officialLink: "",
     translatedLink: "",
     seoTitle: "",
@@ -396,7 +398,49 @@ export default function NovelForm({
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="chapterCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>章节数</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="例如：100"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>小说总章节数，默认为 0</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="viewCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>浏览量</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="例如：1000"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>小说浏览量，默认为 0</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="score"
@@ -437,26 +481,6 @@ export default function NovelForm({
                     <FormDescription>
                       小说收到的评论数，默认为 0
                     </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="chapterCount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>章节数</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="例如：100"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>小说总章节数，默认为 0</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
