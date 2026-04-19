@@ -196,7 +196,7 @@ const user = Astro.locals.user;
           <ol class="mt-5 grid gap-3">
             {
               weeklyPicks.map((item, idx) => (
-                <li class="flex items-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-3 transition-colors hover:bg-background/60">
+                <li class="flex items-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-3 transition-colors hover:bg-background/60 overflow-hidden">
                   <div
                     class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
                       idx === 0
@@ -273,7 +273,7 @@ const user = Astro.locals.user;
               />
 
               {/* Overlays */}
-              <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-90" />
+              <div class="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-90" />
               <div class="absolute inset-0 border border-white/10 rounded-2xl transition-colors duration-500 group-hover:border-primary/50 z-20 pointer-events-none" />
               <div class="absolute inset-0 bg-[linear-gradient(to_bottom_right,transparent_40%,rgba(255,255,255,0.1)_100%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100 z-10 pointer-events-none" />
 
