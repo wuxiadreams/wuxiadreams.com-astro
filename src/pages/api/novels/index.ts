@@ -8,13 +8,8 @@ import { copySingleFile } from "@/lib/r2";
 export type NovelType = typeof novel.$inferSelect;
 export type NovelListResponse = PaginatedResponse<NovelType>;
 
-export async function POST({
-  locals,
-  request,
-}: {
-  locals: any;
-  request: Request;
-}) {
+export async function POST(context) {
+  const { locals, request } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 

@@ -86,7 +86,12 @@ export default function NovelActions({
     setIsUpdating(true);
 
     try {
-      const res = await fetch(`/api/novels/${novel.id}`, {
+      const url =
+        field === "published"
+          ? `/api/novels/publish/${novel.id}`
+          : `/api/novels/pin/${novel.id}`;
+
+      const res = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

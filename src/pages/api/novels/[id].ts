@@ -287,8 +287,10 @@ export async function DELETE(context: APIContext) {
       });
     }
 
-    // 清除缓存
+    // 清除小说缓存
     await cache.invalidate({ tags: [`novel:${deletedNovel[0].id}`] });
+    // 清除sitemap缓存
+    await cache.invalidate({ tags: ["sitemap"] });
 
     try {
       if (deletedNovel[0].cover) {
