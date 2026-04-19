@@ -45,7 +45,8 @@ export async function GET({
   if (sortBy === "name") {
     orderByColumn = sortOrder === "asc" ? asc(author.name) : desc(author.name);
   } else if (sortBy === "novelCount") {
-    orderByColumn = sortOrder === "asc" ? asc(author.novelCount) : desc(author.novelCount);
+    orderByColumn =
+      sortOrder === "asc" ? asc(author.novelCount) : desc(author.novelCount);
   } else {
     // Default to createdAt
     orderByColumn =
@@ -86,13 +87,8 @@ export async function GET({
   }
 }
 
-export async function POST({
-  locals,
-  request,
-}: {
-  locals: any;
-  request: Request;
-}) {
+export async function POST(context) {
+  const { locals, request, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -154,6 +150,10 @@ export async function POST({
         updatedAt: new Date(),
       })
       .returning();
+
+    // 清除缓存
+    await cache.invalidate({ tags: [`author:${newAuthor[0].id}`] });
+    await cache.invalidate({ tags: ["authors"] });
 
     return new Response(JSON.stringify(newAuthor[0]), {
       status: 201,

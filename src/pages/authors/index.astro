@@ -2,7 +2,6 @@
 import Layout from "@/layouts/layout.astro";
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
-import { count, eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
 
 const db = drizzle(env.DB, { schema });
@@ -35,6 +34,12 @@ const sortedLetters = Object.keys(authorsByLetter).sort((a, b) => {
   if (a === "#") return 1;
   if (b === "#") return -1;
   return a.localeCompare(b);
+});
+
+Astro.cache.set({
+  maxAge: 86400,
+  swr: 60,
+  tags: ["authors"],
 });
 ---
 

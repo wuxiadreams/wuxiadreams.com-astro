@@ -3,13 +3,8 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { author } from "@/db/schema";
 
-export async function POST({
-  locals,
-  request,
-}: {
-  locals: any;
-  request: Request;
-}) {
+export async function POST(context) {
+  const { locals, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -31,8 +26,14 @@ export async function POST({
       )`,
     });
 
+    // 清除缓存
+    await cache.invalidate({ tags: ["authors"] });
+
     return new Response(
-      JSON.stringify({ success: true, message: "Author novel counts synced successfully" }),
+      JSON.stringify({
+        success: true,
+        message: "Author novel counts synced successfully",
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
