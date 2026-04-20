@@ -96,6 +96,12 @@ const trendingCategories = await db.query.category.findMany({
 });
 
 const user = Astro.locals.user;
+
+Astro.cache.set({
+  maxAge: 3600,
+  swr: 60,
+  tags: ["home"],
+});
 ---
 
 <Layout title="Wuxia Dreams — Discover and Track Novels">
