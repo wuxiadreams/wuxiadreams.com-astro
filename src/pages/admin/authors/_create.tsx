@@ -59,7 +59,13 @@ export default function CreateAuthorDialog({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, nameAlt, slug: finalSlug, country, isPinned }),
+        body: JSON.stringify({
+          name,
+          nameAlt,
+          slug: finalSlug,
+          country,
+          isPinned,
+        }),
       });
 
       if (!res.ok) {
@@ -92,7 +98,10 @@ export default function CreateAuthorDialog({
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="name"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 名称
               </label>
               <Input
@@ -100,12 +109,15 @@ export default function CreateAuthorDialog({
                 value={name}
                 onChange={handleNameChange}
                 className="col-span-3"
-                placeholder="例如: 唐家三少"
+                placeholder="例如: Tang Jia San Shao"
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="nameAlt" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="nameAlt"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 别名
               </label>
               <Input
@@ -113,12 +125,15 @@ export default function CreateAuthorDialog({
                 value={nameAlt}
                 onChange={(e) => setNameAlt(e.target.value)}
                 className="col-span-3"
-                placeholder="例如: Tang Jia San Shao"
+                placeholder="例如: 唐家三少"
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="slug" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="slug"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 Slug
               </label>
               <Input
@@ -130,7 +145,10 @@ export default function CreateAuthorDialog({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="country" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="country"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 国家
               </label>
               <Input
@@ -142,7 +160,10 @@ export default function CreateAuthorDialog({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="isPinned" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="isPinned"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 置顶
               </label>
               <div className="col-span-3 flex items-center space-x-2">

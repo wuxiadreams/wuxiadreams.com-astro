@@ -53,9 +53,9 @@ export default function EditAuthorDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!author) return;
-    
+
     setIsLoading(true);
-    
+
     const finalSlug = slug || autoSlug;
 
     try {
@@ -64,11 +64,17 @@ export default function EditAuthorDialog({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, nameAlt, slug: finalSlug, country, isPinned }),
+        body: JSON.stringify({
+          name,
+          nameAlt,
+          slug: finalSlug,
+          country,
+          isPinned,
+        }),
       });
 
       if (!res.ok) {
-        const data = await res.json() as { error?: string };
+        const data = (await res.json()) as { error?: string };
         throw new Error(data.error || "更新失败");
       }
 
@@ -92,7 +98,10 @@ export default function EditAuthorDialog({
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="edit-name" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="edit-name"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 名称
               </label>
               <Input
@@ -100,12 +109,15 @@ export default function EditAuthorDialog({
                 value={name}
                 onChange={handleNameChange}
                 className="col-span-3"
-                placeholder="例如: 唐家三少"
+                placeholder="例如: Tang Jia San Shao"
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="edit-nameAlt" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="edit-nameAlt"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 别名
               </label>
               <Input
@@ -113,12 +125,15 @@ export default function EditAuthorDialog({
                 value={nameAlt}
                 onChange={(e) => setNameAlt(e.target.value)}
                 className="col-span-3"
-                placeholder="例如: Tang Jia San Shao"
+                placeholder="例如: 唐家三少"
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="edit-slug" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="edit-slug"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 Slug
               </label>
               <Input
@@ -130,7 +145,10 @@ export default function EditAuthorDialog({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="edit-country" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="edit-country"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 国家
               </label>
               <Input
@@ -142,7 +160,10 @@ export default function EditAuthorDialog({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="edit-isPinned" className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label
+                htmlFor="edit-isPinned"
+                className="text-right text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 置顶
               </label>
               <div className="col-span-3 flex items-center space-x-2">

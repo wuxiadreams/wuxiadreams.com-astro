@@ -93,7 +93,7 @@ export default function CreateTagDialog({
                 value={name}
                 onChange={handleNameChange}
                 className="col-span-3"
-                placeholder="例如: 玄幻"
+                placeholder="例如: Xuanhuan"
                 required
               />
             </div>
