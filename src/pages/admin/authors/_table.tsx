@@ -45,7 +45,7 @@ export default function AuthorTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 1000);
   const [sortBy, setSortBy] = useState<"createdAt" | "name" | "novelCount">(
     "createdAt",
   );

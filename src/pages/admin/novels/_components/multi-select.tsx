@@ -44,9 +44,10 @@ export function MultiSelect({
   const [options, setOptions] = React.useState<Option[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [search, setSearch] = React.useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
+  const [debouncedSearch] = useDebounce(search, 1000);
 
-  const [selectedOptions, setSelectedOptions] = React.useState<Option[]>(initialOptions);
+  const [selectedOptions, setSelectedOptions] =
+    React.useState<Option[]>(initialOptions);
 
   React.useEffect(() => {
     if (initialOptions && initialOptions.length > 0) {
