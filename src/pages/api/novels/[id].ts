@@ -4,9 +4,8 @@ import { db } from "@/lib/db";
 import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
 import { copySingleFile } from "@/lib/r2";
 import { actions } from "astro:actions";
-import type { APIContext } from "astro";
 
-export async function GET(context: APIContext) {
+export async function GET(context) {
   const { locals, params } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
@@ -95,7 +94,7 @@ export async function GET(context: APIContext) {
   }
 }
 
-export async function PUT(context: APIContext) {
+export async function PUT(context) {
   const { locals, request, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
@@ -157,6 +156,7 @@ export async function PUT(context: APIContext) {
     }
 
     // 清除缓存
+    await cache.invalidate({ tags: ["novels"] });
     await cache.invalidate({ tags: [`novel:${updatedNovel[0].id}`] });
 
     // Handle authors update
@@ -254,7 +254,7 @@ export async function PUT(context: APIContext) {
   }
 }
 
-export async function DELETE(context: APIContext) {
+export async function DELETE(context) {
   const { locals, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
@@ -289,6 +289,7 @@ export async function DELETE(context: APIContext) {
     }
 
     // 清除小说缓存
+    await cache.invalidate({ tags: ["novels"] });
     await cache.invalidate({ tags: [`novel:${deletedNovel[0].id}`] });
     // 清除sitemap缓存
     await cache.invalidate({ tags: ["sitemap"] });

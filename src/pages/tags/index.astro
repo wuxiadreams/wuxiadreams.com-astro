@@ -34,6 +34,12 @@ const sortedLetters = Object.keys(tagsByLetter).sort((a, b) => {
   if (b === "#") return -1;
   return a.localeCompare(b);
 });
+
+Astro.cache.set({
+  maxAge: 86400,
+  swr: 60,
+  tags: ["tags"],
+});
 ---
 
 <Layout

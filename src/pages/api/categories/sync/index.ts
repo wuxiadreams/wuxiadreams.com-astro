@@ -3,13 +3,8 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { category } from "@/db/schema";
 
-export async function POST({
-  locals,
-  request,
-}: {
-  locals: any;
-  request: Request;
-}) {
+export async function POST(context) {
+  const { locals, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -30,6 +25,9 @@ export async function POST({
       )`,
     });
 
+    // 清除缓存
+    await cache.invalidate({ tags: ["genres"] });
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -42,9 +40,12 @@ export async function POST({
     );
   } catch (error: any) {
     console.error("Error syncing categories:", error);
-    return new Response(JSON.stringify({ error: "Failed to sync categories" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Failed to sync categories" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 }

@@ -9,7 +9,7 @@ export type NovelType = typeof novel.$inferSelect;
 export type NovelListResponse = PaginatedResponse<NovelType>;
 
 export async function POST(context) {
-  const { locals, request } = context;
+  const { locals, request, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -68,6 +68,9 @@ export async function POST(context) {
     const novelId = newNovel[0]?.id;
 
     if (novelId) {
+      // 清除缓存
+      await cache.invalidate({ tags: ["novels"] });
+
       // 2. Map authors to novel
       if (Array.isArray(authors) && authors.length > 0) {
         const authorValues = authors.map((authorId) => ({

@@ -73,6 +73,12 @@ const novels = await db
   .offset((page - 1) * pageSize);
 
 const r2Domain = env.R2_DOMAIN;
+
+Astro.cache.set({
+  maxAge: 86400,
+  swr: 60,
+  tags: ["genre", `genre:${currentCategory.id}`],
+});
 ---
 
 <Layout

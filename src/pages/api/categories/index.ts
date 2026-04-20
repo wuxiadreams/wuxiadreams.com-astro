@@ -43,7 +43,9 @@ export async function GET({
       sortOrder === "asc" ? asc(category.name) : desc(category.name);
   } else if (sortBy === "novelCount") {
     orderByColumn =
-      sortOrder === "asc" ? asc(category.novelCount) : desc(category.novelCount);
+      sortOrder === "asc"
+        ? asc(category.novelCount)
+        : desc(category.novelCount);
   } else {
     // Default to createdAt
     orderByColumn =
@@ -84,13 +86,8 @@ export async function GET({
   }
 }
 
-export async function POST({
-  locals,
-  request,
-}: {
-  locals: any;
-  request: Request;
-}) {
+export async function POST(context) {
+  const { locals, request, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -133,6 +130,9 @@ export async function POST({
         updatedAt: new Date(),
       })
       .returning();
+
+    // 清除缓存
+    await cache.invalidate({ tags: ["genres"] });
 
     return new Response(JSON.stringify(newCategory[0]), {
       status: 201,

@@ -45,6 +45,12 @@ const tagNovels = await db
   .offset((page - 1) * pageSize);
 
 const r2Domain = env.R2_DOMAIN;
+
+Astro.cache.set({
+  maxAge: 86400,
+  swr: 60,
+  tags: ["tag", `tag:${tagData.id}`],
+});
 ---
 
 <Layout

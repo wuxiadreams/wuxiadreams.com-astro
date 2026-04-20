@@ -3,15 +3,8 @@ import { eq, or, ne, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { category } from "@/db/schema";
 
-export async function PUT({
-  locals,
-  request,
-  params,
-}: {
-  locals: any;
-  request: Request;
-  params: { id: string };
-}) {
+export async function PUT(context) {
+  const { locals, request, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -23,7 +16,11 @@ export async function PUT({
   }
 
   try {
-    const body = (await request.json()) as { name?: string; slug?: string; isPinned?: boolean };
+    const body = (await request.json()) as {
+      name?: string;
+      slug?: string;
+      isPinned?: boolean;
+    };
     const { name, slug, isPinned } = body;
     const categoryId = Number(params.id);
 
@@ -44,10 +41,13 @@ export async function PUT({
       });
 
       if (existingCategory) {
-        return new Response(JSON.stringify({ error: "分类名称或 Slug 已存在" }), {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "分类名称或 Slug 已存在" }),
+          {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
     }
 
@@ -69,6 +69,10 @@ export async function PUT({
       });
     }
 
+    // 清除缓存
+    await cache.invalidate({ tags: ["genres"] });
+    await cache.invalidate({ tags: [`genre:${categoryId}`] });
+
     return new Response(JSON.stringify(updatedCategory[0]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -81,13 +85,8 @@ export async function PUT({
   }
 }
 
-export async function DELETE({
-  locals,
-  params,
-}: {
-  locals: any;
-  params: { id: string };
-}) {
+export async function DELETE(context) {
+  const { locals, params, cache } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -119,6 +118,10 @@ export async function DELETE({
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // 清除缓存
+    await cache.invalidate({ tags: ["genres"] });
+    await cache.invalidate({ tags: [`genre:${categoryId}`] });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
