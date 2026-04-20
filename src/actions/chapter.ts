@@ -117,6 +117,7 @@ export const chapter = {
           slug: novel.slug,
           cover: novel.cover,
           reviewCount: novel.reviewCount,
+          score: novel.score,
           totalChapters: novel.chapterCount,
         })
         .from(novel)
