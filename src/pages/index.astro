@@ -4,36 +4,22 @@ import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
 import { AuthDialog } from "@/components/auth-dialog";
 import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
-import { desc, eq, asc, and, gt, sql } from "drizzle-orm";
-import * as schema from "@/db/schema";
-import { fetchRankingData } from "@/lib/rankings";
-import { RANK_TYPE } from "@/lib/constants";
+import { actions } from "astro:actions";
 
-const db = drizzle(env.DB, { schema });
-const weeklyPicks = await fetchRankingData(db, RANK_TYPE.WEEKLY, 3);
+const res = await Astro.callAction(actions.getHomeData, {});
+const data = res.data;
 
-// Fetch 4 latest updated novels
-const latestUpdatedNovels = await db.query.novel.findMany({
-  where: and(
-    eq(schema.novel.published, true),
-    gt(schema.novel.chapterCount, 0),
-  ),
-  orderBy: [desc(schema.novel.updatedAt)],
-  limit: 5,
-  with: {
-    novelAuthors: {
-      with: {
-        author: true,
-      },
-    },
-    chapters: {
-      where: eq(schema.chapter.published, true),
-      orderBy: [desc(schema.chapter.number)],
-      limit: 1,
-    },
-  },
-});
+if (!data) {
+  throw new Error("Failed to load home page data");
+}
+
+const {
+  weeklyPicks,
+  latestUpdatedNovels,
+  editorsPicks,
+  popularTags,
+  trendingCategories,
+} = data;
 
 // Format the latest updates data
 const latestUpdates = latestUpdatedNovels.map((novel: any) => {
@@ -49,22 +35,7 @@ const latestUpdates = latestUpdatedNovels.map((novel: any) => {
   };
 });
 
-// Fetch 10 Editor's Picks (Pinned novels)
-const editorsPicks = await db.query.novel.findMany({
-  where: and(eq(schema.novel.published, true), eq(schema.novel.isPinned, true)),
-  orderBy: [desc(schema.novel.createdAt)],
-  limit: 10,
-  with: {
-    novelAuthors: {
-      with: { author: true },
-    },
-    novelTags: {
-      with: { tag: true },
-    },
-  },
-});
-
-const featured = editorsPicks.map((novel) => {
+const featured = editorsPicks.map((novel: any) => {
   const authorName = novel.novelAuthors?.[0]?.author?.name || "Unknown Author";
   const tagName = novel.novelTags?.[0]?.tag?.name || "Uncategorized";
 
@@ -75,22 +46,6 @@ const featured = editorsPicks.map((novel) => {
     tag: tagName,
     cover: `https://${env.R2_DOMAIN}/${novel.cover}`,
   };
-});
-
-const popularTags = await db
-  .select({
-    id: schema.tag.id,
-    name: schema.tag.name,
-    slug: schema.tag.slug,
-    count: schema.tag.novelCount,
-  })
-  .from(schema.tag)
-  .orderBy(desc(schema.tag.novelCount))
-  .limit(10);
-
-const trendingCategories = await db.query.category.findMany({
-  where: eq(schema.category.isPinned, true),
-  limit: 4,
 });
 
 const user = Astro.locals.user;
