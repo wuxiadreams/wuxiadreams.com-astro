@@ -29,7 +29,7 @@ const latestUpdatedNovels = await db.query.novel.findMany({
     },
     chapters: {
       where: eq(schema.chapter.published, true),
-      orderBy: [asc(schema.chapter.number)],
+      orderBy: [desc(schema.chapter.number)],
       limit: 1,
     },
   },
@@ -38,15 +38,13 @@ const latestUpdatedNovels = await db.query.novel.findMany({
 // Format the latest updates data
 const latestUpdates = latestUpdatedNovels.map((novel: any) => {
   const authorName = novel.novelAuthors?.[0]?.author?.name || "Unknown Author";
-  const firstChapter = novel.chapters?.[0];
+  const lastChapter = novel.chapters?.[0];
 
   return {
     title: novel.title,
     slug: novel.slug,
     author: authorName,
-    chapter: firstChapter
-      ? `Ch. ${firstChapter.number} · ${firstChapter.title}`
-      : "No chapters yet",
+    chapter: lastChapter ? `${lastChapter.title}` : "No chapters yet",
     time: formatDistanceToNow(new Date(novel.updatedAt), { addSuffix: true }),
   };
 });
