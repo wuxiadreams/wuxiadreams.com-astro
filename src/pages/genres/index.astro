@@ -2,45 +2,28 @@
 import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
-import { db } from "@/lib/db";
-import { category, novel } from "@/db/schema";
-import { eq, and, desc, count } from "drizzle-orm";
+import { actions } from "astro:actions";
 
 const url = new URL(Astro.request.url);
 const page = parseInt(url.searchParams.get("page") || "1");
 const statusFilter = url.searchParams.get("status") || "all";
 const pageSize = 24;
 
-// Use null to indicate "All Genres"
-const currentCategorySlug = null;
+const res = await Astro.callAction(actions.genre.getAllGenres, {
+  page,
+  statusFilter,
+  pageSize,
+});
+const data = res.data;
 
-// Fetch all categories
-const categories = await db.select().from(category).orderBy(category.name);
-
-// Build conditions
-let conditions = [eq(novel.published, true)];
-if (statusFilter === "ongoing") {
-  conditions.push(eq(novel.status, "ongoing"));
-} else if (statusFilter === "completed") {
-  conditions.push(eq(novel.status, "completed"));
+if (!data) {
+  throw new Error("Failed to load genres data");
 }
 
-// Count total
-const [{ total }] = await db
-  .select({ total: count() })
-  .from(novel)
-  .where(and(...conditions));
+const { categories, total, totalPages, novels } = data;
 
-const totalPages = Math.ceil(total / pageSize);
-
-// Fetch novels
-const novels = await db
-  .select()
-  .from(novel)
-  .where(and(...conditions))
-  .orderBy(desc(novel.viewCount))
-  .limit(pageSize)
-  .offset((page - 1) * pageSize);
+// Use null to indicate "All Genres"
+const currentCategorySlug = null;
 
 const r2Domain = env.R2_DOMAIN;
 

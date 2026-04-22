@@ -2,9 +2,7 @@
 import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
-import { db } from "@/lib/db";
-import { author, novelAuthor, novel } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { actions } from "astro:actions";
 
 const { slug } = Astro.params;
 
@@ -12,35 +10,14 @@ if (!slug) {
   return Astro.redirect("/authors");
 }
 
-// 1. 获取作者基本信息
-const authorData = await db
-  .select()
-  .from(author)
-  .where(eq(author.slug, slug))
-  .get();
+const res = await Astro.callAction(actions.author.getAuthorNovels, { slug });
+const data = res.data;
 
-if (!authorData) {
+if (!data || !data.authorData) {
   return Astro.redirect("/authors");
 }
 
-// 2. 获取该作者写的所有已发布小说
-const authorNovels = await db
-  .select({
-    id: novel.id,
-    title: novel.title,
-    slug: novel.slug,
-    cover: novel.cover,
-    status: novel.status,
-    score: novel.score,
-    viewCount: novel.viewCount,
-    chapterCount: novel.chapterCount,
-  })
-  .from(novelAuthor)
-  .innerJoin(novel, eq(novelAuthor.novelId, novel.id))
-  .where(
-    and(eq(novelAuthor.authorId, authorData.id), eq(novel.published, true)),
-  )
-  .orderBy(desc(novel.viewCount));
+const { authorData, authorNovels } = data;
 
 const r2Domain = env.R2_DOMAIN;
 

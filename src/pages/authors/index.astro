@@ -1,40 +1,15 @@
 ---
 import Layout from "@/layouts/layout.astro";
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "@/db/schema";
+import { actions } from "astro:actions";
 
-const db = drizzle(env.DB, { schema });
+const res = await Astro.callAction(actions.author.getAllAuthors, {});
+const data = res.data;
 
-// Fetch all authors and use pre-calculated novelCount
-const allAuthors = await db
-  .select({
-    id: schema.author.id,
-    name: schema.author.name,
-    slug: schema.author.slug,
-    country: schema.author.country,
-    novelCount: schema.author.novelCount,
-  })
-  .from(schema.author)
-  .orderBy(schema.author.name);
+if (!data) {
+  throw new Error("Failed to load authors data");
+}
 
-// Group authors by first letter
-const authorsByLetter = allAuthors.reduce(
-  (acc, author) => {
-    const letter = author.name.charAt(0).toUpperCase();
-    const validLetter = /[A-Z]/.test(letter) ? letter : "#";
-    if (!acc[validLetter]) acc[validLetter] = [];
-    acc[validLetter].push(author);
-    return acc;
-  },
-  {} as Record<string, typeof allAuthors>,
-);
-
-const sortedLetters = Object.keys(authorsByLetter).sort((a, b) => {
-  if (a === "#") return 1;
-  if (b === "#") return -1;
-  return a.localeCompare(b);
-});
+const { authorsByLetter, sortedLetters } = data;
 
 Astro.cache.set({
   maxAge: 86400,

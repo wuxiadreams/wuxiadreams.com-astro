@@ -1,39 +1,15 @@
 ---
 import Layout from "@/layouts/layout.astro";
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
-import * as schema from "@/db/schema";
+import { actions } from "astro:actions";
 
-const db = drizzle(env.DB, { schema });
+const res = await Astro.callAction(actions.tag.getAllTags, {});
+const data = res.data;
 
-// Fetch all tags and use pre-calculated novelCount
-const allTags = await db
-  .select({
-    id: schema.tag.id,
-    name: schema.tag.name,
-    slug: schema.tag.slug,
-    novelCount: schema.tag.novelCount,
-  })
-  .from(schema.tag)
-  .orderBy(schema.tag.name);
+if (!data) {
+  throw new Error("Failed to load tags data");
+}
 
-// Group tags by first letter
-const tagsByLetter = allTags.reduce(
-  (acc, tag) => {
-    const letter = tag.name.charAt(0).toUpperCase();
-    const validLetter = /[A-Z]/.test(letter) ? letter : "#";
-    if (!acc[validLetter]) acc[validLetter] = [];
-    acc[validLetter].push(tag);
-    return acc;
-  },
-  {} as Record<string, typeof allTags>,
-);
-
-const sortedLetters = Object.keys(tagsByLetter).sort((a, b) => {
-  if (a === "#") return 1;
-  if (b === "#") return -1;
-  return a.localeCompare(b);
-});
+const { tagsByLetter, sortedLetters } = data;
 
 Astro.cache.set({
   maxAge: 86400,

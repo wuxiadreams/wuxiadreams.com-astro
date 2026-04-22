@@ -2,9 +2,7 @@
 import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
-import { db } from "@/lib/db";
-import { tag, novelTag, novel } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { actions } from "astro:actions";
 
 const { slug } = Astro.params;
 const page = Number(Astro.url.searchParams.get("page")) || 1;
@@ -14,35 +12,19 @@ if (!slug) {
   return Astro.redirect("/tags");
 }
 
-// 1. 获取标签基本信息
-const tagData = await db.select().from(tag).where(eq(tag.slug, slug)).get();
+const res = await Astro.callAction(actions.tag.getTagNovels, {
+  slug,
+  page,
+  pageSize,
+});
 
-if (!tagData) {
+const data = res.data;
+
+if (!data || !data.tagData) {
   return Astro.redirect("/tags");
 }
 
-// 2. 使用预先计算好的小说数量
-const total = tagData.novelCount;
-const totalPages = Math.ceil(total / pageSize);
-
-// 3. 获取当前页的已发布小说
-const tagNovels = await db
-  .select({
-    id: novel.id,
-    title: novel.title,
-    slug: novel.slug,
-    cover: novel.cover,
-    status: novel.status,
-    score: novel.score,
-    viewCount: novel.viewCount,
-    chapterCount: novel.chapterCount,
-  })
-  .from(novelTag)
-  .innerJoin(novel, eq(novelTag.novelId, novel.id))
-  .where(and(eq(novelTag.tagId, tagData.id), eq(novel.published, true)))
-  .orderBy(desc(novel.viewCount))
-  .limit(pageSize)
-  .offset((page - 1) * pageSize);
+const { tagData, tagNovels, totalPages } = data;
 
 const r2Domain = env.R2_DOMAIN;
 

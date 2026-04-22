@@ -8,12 +8,18 @@ import { chapter } from "./chapter";
 import { cover } from "./cover";
 import { novelActions } from "./novel";
 import { chapterManagement } from "./chapter-management";
+import { tagActions } from "./tag";
+import { genreActions } from "./genre";
+import { authorActions } from "./author";
 
 export const server = {
   chapter,
   cover,
   novel: novelActions,
   chapterManagement,
+  tag: tagActions,
+  genre: genreActions,
+  author: authorActions,
   getHomeData: defineAction({
     accept: "json",
     handler: async () => {
