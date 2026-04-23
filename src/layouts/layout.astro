@@ -38,7 +38,7 @@ const ogImage = new URL("/logo.png", Astro.site);
     <meta name="generator" content={Astro.generator} />
     <meta name="color-scheme" content="dark light" />
     <script is:inline>
-      (() => {
+      function applyTheme() {
         const stored = (() => {
           try {
             return localStorage.getItem("theme");
@@ -47,10 +47,14 @@ const ogImage = new URL("/logo.png", Astro.site);
           }
         })();
 
+        console.log("=========", stored);
+
         const prefersDark =
           typeof window !== "undefined" &&
           "matchMedia" in window &&
           window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        console.log("prefersDark", prefersDark);
 
         const theme =
           stored === "dark" || stored === "light"
@@ -62,7 +66,13 @@ const ogImage = new URL("/logo.png", Astro.site);
         const root = document.documentElement;
         root.classList.toggle("dark", theme === "dark");
         root.style.colorScheme = theme;
-      })();
+      }
+
+      // 首次加载运行
+      applyTheme();
+
+      // 每次 View Transitions 切换页面后重新运行
+      document.addEventListener("astro:after-swap", applyTheme);
     </script>
   </head>
   <body>
