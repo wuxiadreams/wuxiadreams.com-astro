@@ -12,7 +12,7 @@ if (!data) {
 const { authorsByLetter, sortedLetters } = data;
 
 Astro.cache.set({
-  maxAge: 86400,
+  maxAge: 31536000,
   swr: 60,
   tags: ["authors"],
 });

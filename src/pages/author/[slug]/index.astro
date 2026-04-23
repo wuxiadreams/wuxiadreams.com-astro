@@ -22,7 +22,7 @@ const { authorData, authorNovels } = data;
 const r2Domain = env.R2_DOMAIN;
 
 Astro.cache.set({
-  maxAge: 86400,
+  maxAge: 31536000,
   swr: 60,
   tags: ["author", `author:${authorData.id}`],
 });
