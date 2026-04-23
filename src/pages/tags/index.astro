@@ -16,6 +16,11 @@ Astro.cache.set({
   swr: 60,
   tags: ["tags"],
 });
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=3600, stale-while-revalidate=60",
+);
 ---
 
 <Layout
