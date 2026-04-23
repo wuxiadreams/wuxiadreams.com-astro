@@ -29,92 +29,96 @@ const isActive = (href: string, exact: boolean = false) => {
   transition:persist
   class="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur"
 >
-  <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
-    <a href="/" class="group flex items-center gap-3">
-      <Image
-        src="/logo.png"
-        alt="Wuxia Dreams"
-        width={32}
-        height={32}
-        class="h-8 w-8 rounded-md ring-1 ring-border/70"
-        loading="eager"
-      />
-      <div class="leading-tight">
-        <div class="text-sm font-semibold tracking-tight text-foreground">
-          Wuxia Dreams
+  <div
+    class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4"
+  >
+    <div class="flex items-center gap-4">
+      <a href="/" class="group flex items-center gap-3">
+        <Image
+          src="/logo.png"
+          alt="Wuxia Dreams"
+          width={32}
+          height={32}
+          class="h-8 w-8 rounded-md ring-1 ring-border/70"
+          loading="eager"
+        />
+        <div class="leading-tight">
+          <div class="text-sm font-semibold tracking-tight text-foreground">
+            Wuxia Dreams
+          </div>
+          <div class="text-[11px] tracking-0.1em text-muted-foreground">
+            Free Novels Online
+          </div>
         </div>
-        <div class="text-[11px] tracking-[0.1em] text-muted-foreground">
-          Free Novels Online
-        </div>
-      </div>
-    </a>
+      </a>
 
-    <nav class="ml-6 hidden items-center gap-1 md:flex">
-      {
-        navItems.map((item) =>
-          item.subItems ? (
-            <div class="relative group">
+      <nav class="ml-6 hidden items-center gap-1 md:flex">
+        {
+          navItems.map((item) =>
+            item.subItems ? (
+              <div class="relative group">
+                <a
+                  href={item.href}
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  class:list={[
+                    "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition",
+                    isActive(item.href) ||
+                    item.subItems.some((sub) => isActive(sub.href))
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                  ]}
+                >
+                  {item.label}
+                  <svg
+                    class="h-3.5 w-3.5 opacity-50 transition-transform duration-200 group-hover:rotate-180"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </a>
+                <div class="absolute left-0 top-full hidden pt-2 group-hover:block">
+                  <div class="w-48 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-xl backdrop-blur">
+                    {item.subItems.map((sub) => (
+                      <a
+                        href={sub.href}
+                        class:list={[
+                          "block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          isActive(sub.href, true)
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        ]}
+                      >
+                        {sub.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
               <a
                 href={item.href}
                 aria-current={isActive(item.href) ? "page" : undefined}
                 class:list={[
-                  "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition",
-                  isActive(item.href) ||
-                  item.subItems.some((sub) => isActive(sub.href))
+                  "rounded-lg px-3 py-2 text-sm font-medium transition",
+                  isActive(item.href)
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                 ]}
               >
                 {item.label}
-                <svg
-                  class="h-3.5 w-3.5 opacity-50 transition-transform duration-200 group-hover:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
               </a>
-              <div class="absolute left-0 top-full hidden pt-2 group-hover:block">
-                <div class="w-48 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-xl backdrop-blur">
-                  {item.subItems.map((sub) => (
-                    <a
-                      href={sub.href}
-                      class:list={[
-                        "block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                        isActive(sub.href, true)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      ]}
-                    >
-                      {sub.label}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <a
-              href={item.href}
-              aria-current={isActive(item.href) ? "page" : undefined}
-              class:list={[
-                "rounded-lg px-3 py-2 text-sm font-medium transition",
-                isActive(item.href)
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
-              ]}
-            >
-              {item.label}
-            </a>
-          ),
-        )
-      }
-    </nav>
+            ),
+          )
+        }
+      </nav>
+    </div>
 
     <HeaderDynamic server:defer navItems={navItems} />
   </div>

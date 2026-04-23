@@ -24,13 +24,13 @@ if (user) {
 }
 ---
 
-<div class="ml-auto flex items-center gap-2">
+<div class="flex-1 flex items-center justify-end gap-2">
   <form action="/novels" method="get" class="hidden lg:block">
-    <label class="group relative block">
+    <label class="group relative flex items-center justify-end gap-2">
       <input
         name="q"
         placeholder="Search titles / authors / tags"
-        class="h-10 w-22rem rounded-xl border border-input bg-background/60 px-3 pr-10 text-sm text-foreground shadow-sm transition placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        class="h-10 w-80 rounded-xl border border-input bg-background/60 px-3 pr-10 text-sm text-foreground shadow-sm transition placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       />
       <div
         class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
