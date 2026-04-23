@@ -47,21 +47,8 @@ const ogImage = new URL("/logo.png", Astro.site);
           }
         })();
 
-        console.log("=========", stored);
-
-        const prefersDark =
-          typeof window !== "undefined" &&
-          "matchMedia" in window &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-        console.log("prefersDark", prefersDark);
-
         const theme =
-          stored === "dark" || stored === "light"
-            ? stored
-            : prefersDark
-              ? "dark"
-              : "light";
+          stored === "dark" || stored === "light" ? stored : "light";
 
         const root = document.documentElement;
         root.classList.toggle("dark", theme === "dark");
