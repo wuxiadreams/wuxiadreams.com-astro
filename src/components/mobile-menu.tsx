@@ -6,6 +6,7 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
+import { authClient } from "@/lib/auth-client";
 
 interface NavItem {
   href: string;
@@ -30,6 +31,16 @@ export function MobileMenu({
     if (href === "/") return currentPath === "/";
     if (exact) return currentPath === href;
     return currentPath.startsWith(href);
+  };
+
+  const handleSignOut = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          window.location.reload();
+        },
+      },
+    });
   };
 
   return (
@@ -72,7 +83,7 @@ export function MobileMenu({
                   <div className="text-[13px] font-semibold tracking-tight text-foreground">
                     Wuxia Dreams
                   </div>
-                  <div className="text-[10px] tracking-[0.1em] text-muted-foreground">
+                  <div className="text-[10px] tracking-0.1em text-muted-foreground">
                     Free novels online
                   </div>
                 </div>
@@ -202,7 +213,7 @@ export function MobileMenu({
                   )}
                   <button
                     type="button"
-                    data-logout-btn
+                    onClick={handleSignOut}
                     className="mt-2 flex w-full items-center justify-center rounded-xl bg-destructive/10 px-4 h-10 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/20 cursor-pointer"
                   >
                     <svg
