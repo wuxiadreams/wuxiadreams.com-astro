@@ -50,11 +50,10 @@ const featured = editorsPicks.map((novel: any) => {
 
 const user = Astro.locals.user;
 
-Astro.cache.set({
-  maxAge: 3600,
-  swr: 60,
-  tags: ["home"],
-});
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=3600, stale-while-revalidate=60",
+);
 ---
 
 <Layout title="Wuxia Dreams — Discover and Track Novels">
