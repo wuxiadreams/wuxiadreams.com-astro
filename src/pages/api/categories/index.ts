@@ -131,9 +131,6 @@ export async function POST(context) {
       })
       .returning();
 
-    // 清除缓存
-    await cache.invalidate({ tags: ["genres"] });
-
     return new Response(JSON.stringify(newCategory[0]), {
       status: 201,
       headers: { "Content-Type": "application/json" },

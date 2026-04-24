@@ -100,11 +100,10 @@ const jsonLd = {
   },
 };
 
-Astro.cache.set({
-  maxAge: 31536000,
-  swr: 60,
-  tags: ["novel", `novel:${novelData.id}`],
-});
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=86400, stale-while-revalidate=60",
+);
 ---
 
 <Layout

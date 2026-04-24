@@ -26,9 +26,6 @@ export async function POST(context) {
       )`,
     });
 
-    // 清除缓存
-    await cache.invalidate({ tags: ["authors"] });
-
     return new Response(
       JSON.stringify({
         success: true,

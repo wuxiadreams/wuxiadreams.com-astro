@@ -4,11 +4,6 @@ import { novel } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export const GET: APIRoute = async ({ site, cache }) => {
-  cache.set({
-    maxAge: 60 * 60 * 24 * 7,
-    tags: ["sitemap"],
-  });
-
   const novels = await db
     .select({
       slug: novel.slug,

@@ -5,7 +5,7 @@ import { novel } from "@/db/schema";
 import type { APIContext } from "astro";
 
 export async function PUT(context: APIContext) {
-  const { locals, request, params, cache } = context;
+  const { locals, request, params } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -26,7 +26,7 @@ export async function PUT(context: APIContext) {
     }
 
     const body = (await request.json()) as { isPinned: boolean };
-    
+
     if (body.isPinned === undefined) {
       return new Response(JSON.stringify({ error: "缺少 isPinned 字段" }), {
         status: 400,
@@ -49,10 +49,6 @@ export async function PUT(context: APIContext) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // 清除缓存
-    await cache.invalidate({ tags: [`novel:${updatedNovel[0].id}`] });
-    await cache.invalidate({ tags: ["sitemap"] });
 
     return new Response(JSON.stringify(updatedNovel[0]), {
       status: 200,

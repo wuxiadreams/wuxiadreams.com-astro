@@ -167,7 +167,7 @@ export const chapterManagement = {
         }),
       ),
     }),
-    handler: async ({ novelId, chaptersData }, { locals, cache }) => {
+    handler: async ({ novelId, chaptersData }, { locals }) => {
       await getAuthenticatedAdmin(locals);
 
       // 先删除小说关联的所有旧章节数据
@@ -175,7 +175,6 @@ export const chapterManagement = {
         await db
           .delete(chapterSchema)
           .where(eq(chapterSchema.novelId, novelId));
-        await cache.invalidate({ tags: [`chapters:${novelId}`] });
       } catch (e) {
         const errorMsg = e instanceof Error ? e.message : String(e);
         throw new Error(`Failed to delete existing chapters: ${errorMsg}`);
@@ -414,10 +413,6 @@ export const chapterManagement = {
       if (!targetChapter) {
         throw new Error("章节不存在");
       }
-
-      await cache.invalidate({
-        tags: [`chapter:${targetChapter.novelId}-${targetChapter.number}`],
-      });
 
       if (targetChapter.fileKey) {
         await deleteSingleFile(targetChapter.fileKey, R2_NOVELS_BUCKET);

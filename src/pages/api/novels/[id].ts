@@ -95,7 +95,7 @@ export async function GET(context) {
 }
 
 export async function PUT(context) {
-  const { locals, request, params, cache } = context;
+  const { locals, request, params } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -154,10 +154,6 @@ export async function PUT(context) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // 清除缓存
-    await cache.invalidate({ tags: ["novels"] });
-    await cache.invalidate({ tags: [`novel:${updatedNovel[0].id}`] });
 
     // Handle authors update
     if (authors !== undefined) {
@@ -255,7 +251,7 @@ export async function PUT(context) {
 }
 
 export async function DELETE(context) {
-  const { locals, params, cache } = context;
+  const { locals, params } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -287,12 +283,6 @@ export async function DELETE(context) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // 清除小说缓存
-    await cache.invalidate({ tags: ["novels"] });
-    await cache.invalidate({ tags: [`novel:${deletedNovel[0].id}`] });
-    // 清除sitemap缓存
-    await cache.invalidate({ tags: ["sitemap"] });
 
     try {
       if (deletedNovel[0].cover) {

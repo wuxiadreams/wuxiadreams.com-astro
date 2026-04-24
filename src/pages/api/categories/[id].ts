@@ -69,10 +69,6 @@ export async function PUT(context) {
       });
     }
 
-    // 清除缓存
-    await cache.invalidate({ tags: ["genres"] });
-    await cache.invalidate({ tags: [`genre:${categoryId}`] });
-
     return new Response(JSON.stringify(updatedCategory[0]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -118,10 +114,6 @@ export async function DELETE(context) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // 清除缓存
-    await cache.invalidate({ tags: ["genres"] });
-    await cache.invalidate({ tags: [`genre:${categoryId}`] });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

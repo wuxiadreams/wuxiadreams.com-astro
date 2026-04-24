@@ -84,7 +84,7 @@ export async function GET({
 }
 
 export async function POST(context) {
-  const { locals, request, cache } = context;
+  const { locals, request } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -127,9 +127,6 @@ export async function POST(context) {
         updatedAt: new Date(),
       })
       .returning();
-
-    // 清除缓存
-    await cache.invalidate({ tags: ["tags"] });
 
     return new Response(JSON.stringify(newTag[0]), {
       status: 201,

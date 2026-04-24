@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { category } from "@/db/schema";
 
 export async function POST(context) {
-  const { locals, cache } = context;
+  const { locals } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -24,9 +24,6 @@ export async function POST(context) {
         WHERE novel_category.category_id = category.id AND novel.published = true
       )`,
     });
-
-    // 清除缓存
-    await cache.invalidate({ tags: ["genres"] });
 
     return new Response(
       JSON.stringify({

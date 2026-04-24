@@ -47,11 +47,10 @@ const getPageUrl = (page: number) => {
 // R2
 const r2Domain = env.R2_DOMAIN;
 
-Astro.cache.set({
-  maxAge: 31536000,
-  swr: 60,
-  tags: ["novels"],
-});
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=86400, stale-while-revalidate=60",
+);
 ---
 
 <Layout title="Browse Novels — Wuxia Dreams">

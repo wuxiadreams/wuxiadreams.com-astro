@@ -2,6 +2,11 @@
 import Layout from "@/layouts/layout.astro";
 import RankingSection from "@/components/ranking-section.astro";
 import { RANK_TYPE } from "@/lib/constants";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=86400, stale-while-revalidate=60",
+);
 ---
 
 <Layout

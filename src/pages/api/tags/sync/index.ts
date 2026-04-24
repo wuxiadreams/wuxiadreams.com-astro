@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { tag } from "@/db/schema";
 
 export async function POST(context) {
-  const { locals, cache } = context;
+  const { locals } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -25,9 +25,6 @@ export async function POST(context) {
         WHERE novel_tag.tag_id = tag.id AND novel.published = true
       )`,
     });
-
-    // 清除缓存
-    await cache.invalidate({ tags: ["tags"] });
 
     return new Response(
       JSON.stringify({

@@ -1,6 +1,11 @@
 ---
 import Layout from "@/layouts/layout.astro";
 import { Content } from "./_content.md";
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=31536000, stale-while-revalidate=60",
+);
 ---
 
 <Layout title="Privacy Policy — Wuxia Dreams">

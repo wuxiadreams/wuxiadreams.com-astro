@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { author } from "@/db/schema";
 
 export async function PUT(context) {
-  const { locals, request, params, cache } = context;
+  const { locals, request, params } = context;
   const email = locals?.user?.email;
   const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 
@@ -85,10 +85,6 @@ export async function PUT(context) {
       });
     }
 
-    // 清除缓存
-    await cache.invalidate({ tags: [`author:${authorId}`] });
-    await cache.invalidate({ tags: ["authors"] });
-
     return new Response(JSON.stringify(updatedAuthor[0]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
@@ -134,10 +130,6 @@ export async function DELETE(context) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // 清除缓存
-    await cache.invalidate({ tags: [`author:${authorId}`] });
-    await cache.invalidate({ tags: ["authors"] });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
