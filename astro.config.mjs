@@ -15,10 +15,8 @@ export default defineConfig({
     "/en": "/",
   },
   prefetch: true,
-  experimental: {
-    cache: {
-      provider: memoryCache(),
-    },
+  build: {
+    inlineStylesheets: "always",
   },
   integrations: [react()],
   adapter: cloudflare(),
