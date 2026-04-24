@@ -15,9 +15,6 @@ export default defineConfig({
     "/en": "/",
   },
   prefetch: true,
-  build: {
-    inlineStylesheets: "auto",
-  },
   integrations: [react()],
   adapter: cloudflare(),
   vite: {
