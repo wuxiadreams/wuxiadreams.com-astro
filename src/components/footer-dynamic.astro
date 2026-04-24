@@ -26,7 +26,7 @@ if (user) {
     </a>
   ) : (
     <AuthDialog
-      client:load
+      client:only
       triggerText="Sign in / Start tracking"
       triggerClassName="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
     />
