@@ -17,6 +17,11 @@ const db = drizzle(env.DB, { schema });
 const novels = await fetchRankingData(db, type, limit);
 const metadata = RANKING_METADATA[type];
 const r2Domain = env.R2_DOMAIN;
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=60, s-maxage=86400, stale-while-revalidate=60",
+);
 ---
 
 {
