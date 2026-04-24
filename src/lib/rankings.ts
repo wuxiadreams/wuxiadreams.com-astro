@@ -1,4 +1,4 @@
-import { sql, desc, eq, and, isNotNull } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { novel, ranking } from "@/db/schema";
 import { RANK_TYPE } from "./constants";

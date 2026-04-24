@@ -16,9 +16,7 @@ export default defineConfig({
   },
   prefetch: true,
   integrations: [react()],
-  adapter: cloudflare({
-    prerenderEnvironment: "node",
-  }),
+  adapter: cloudflare(),
   vite: {
     plugins: [tailwindcss()],
     server: {
