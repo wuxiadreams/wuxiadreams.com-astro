@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/layout.astro";
 import RankingSection from "@/components/ranking-section.astro";
+import { RankingSkeleton } from "@/components/ranking-skeleton";
 import { RANKING_METADATA } from "@/lib/rankings";
 
 const { type } = Astro.params;
@@ -59,16 +60,7 @@ Astro.response.headers.set(
       class="rounded-3xl border border-border/70 bg-linear-to-b from-card/80 to-card/20 p-6 shadow-sm backdrop-blur-xl"
     >
       <RankingSection type={type} limit={100} showHeader={false} server:defer>
-        <div
-          slot="fallback"
-          class="flex h-[50vh] flex-col items-center justify-center text-muted-foreground space-y-4"
-        >
-          <div
-            class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"
-          >
-          </div>
-          <p>Loading full ranking data...</p>
-        </div>
+        <RankingSkeleton showHeader={false} slot="fallback" />
       </RankingSection>
     </section>
   </main>

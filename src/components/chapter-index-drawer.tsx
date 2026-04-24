@@ -10,6 +10,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Skeleton } from "@/components/ui/skeleton";
 import { actions } from "astro:actions";
 
 interface ChapterIndexDrawerProps {
@@ -128,10 +129,19 @@ export function ChapterIndexDrawer({
           {/* 章节列表区 */}
           <div className="flex-1 overflow-y-auto p-4">
             {loading ? (
-              <div className="flex justify-center py-12">
-                <span className="text-muted-foreground">
-                  Loading chapters...
-                </span>
+              <div className="grid gap-2 grid-cols-1">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex flex-col justify-between rounded-xl border border-border/50 bg-card/20 p-3 h-[68px]"
+                  >
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="grid gap-2 grid-cols-1">

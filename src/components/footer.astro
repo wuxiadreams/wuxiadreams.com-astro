@@ -54,8 +54,9 @@ const columns = [
         </p>
 
         <div class="mt-6 flex flex-wrap gap-2">
-          <FooterDynamic server:defer slog="fallback">
+          <FooterDynamic server:defer>
             <AuthDialog
+              slot="fallback"
               client:load
               triggerText="Sign in / Start tracking"
               triggerClassName="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
