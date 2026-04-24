@@ -25,11 +25,7 @@ const columns = [
 ];
 ---
 
-<footer
-  transition:persist
-  transition:name="main-footer"
-  class="border-t border-border/60 bg-background"
->
+<footer class="border-t border-border/60 bg-background">
   <div class="mx-auto max-w-6xl px-4 py-12">
     <div class="grid gap-10 md:grid-cols-[1.2fr_2fr]">
       <div>
@@ -58,7 +54,7 @@ const columns = [
         </p>
 
         <div class="mt-6 flex flex-wrap gap-2">
-          <FooterDynamic server:defer>
+          <FooterDynamic server:defer slog="fallback">
             <AuthDialog
               client:load
               triggerText="Sign in / Start tracking"
@@ -102,12 +98,8 @@ const columns = [
     >
       <div>© {year} Wuxia Dreams. All rights reserved.</div>
       <div class="flex flex-wrap gap-x-4 gap-y-2">
-        <a href="/privacy-policy" class="hover:text-foreground"
-          >Privacy Policy</a
-        >
-        <a href="/terms-of-service" class="hover:text-foreground"
-          >Terms of Service</a
-        >
+        <a href="/privacy-policy" class="hover:text-foreground">Privacy</a>
+        <a href="/terms-of-service" class="hover:text-foreground">Terms</a>
         <a href="/dmca" class="hover:text-foreground">DMCA</a>
         <a href="#" class="hover:text-foreground">Changelog</a>
       </div>
