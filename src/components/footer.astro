@@ -1,8 +1,8 @@
 ---
 import { AuthDialog } from "@/components/auth-dialog";
 import { Image } from "astro:assets";
+import FooterDynamic from "./footer-dynamic.astro";
 
-const user = Astro.locals.user;
 const year = new Date().getFullYear();
 const columns = [
   {
@@ -25,7 +25,11 @@ const columns = [
 ];
 ---
 
-<footer class="border-t border-border/60 bg-background">
+<footer
+  transition:persist
+  transition:name="main-footer"
+  class="border-t border-border/60 bg-background"
+>
   <div class="mx-auto max-w-6xl px-4 py-12">
     <div class="grid gap-10 md:grid-cols-[1.2fr_2fr]">
       <div>
@@ -54,22 +58,13 @@ const columns = [
         </p>
 
         <div class="mt-6 flex flex-wrap gap-2">
-          {
-            user ? (
-              <a
-                href="/library"
-                class="inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
-              >
-                Go to my library
-              </a>
-            ) : (
-              <AuthDialog
-                client:load
-                triggerText="Sign in / Start tracking"
-                triggerClassName="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
-              />
-            )
-          }
+          <FooterDynamic server:defer>
+            <AuthDialog
+              client:load
+              triggerText="Sign in / Start tracking"
+              triggerClassName="inline-flex h-10 cursor-pointer items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            />
+          </FooterDynamic>
           <a
             href="/novels"
             class="inline-flex h-10 items-center justify-center rounded-xl border border-border/70 bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted"

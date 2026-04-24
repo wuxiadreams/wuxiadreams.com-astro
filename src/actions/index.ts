@@ -70,7 +70,7 @@ export const server = {
           })
           .from(tag)
           .orderBy(desc(tag.novelCount))
-          .limit(10),
+          .limit(20),
         db.query.category.findMany({
           where: eq(category.isPinned, true),
           limit: 4,

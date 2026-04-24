@@ -2,7 +2,6 @@
 import { formatDistanceToNow } from "date-fns";
 import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
-import { AuthDialog } from "@/components/auth-dialog";
 import { env } from "cloudflare:workers";
 import { actions } from "astro:actions";
 
@@ -49,6 +48,7 @@ const featured = editorsPicks.map((novel: any) => {
 });
 
 const user = Astro.locals.user;
+const currentYear = new Date().getFullYear();
 
 Astro.response.headers.set(
   "Cache-Control",
@@ -144,9 +144,9 @@ Astro.response.headers.set(
               class="h-10 w-10 rounded-xl ring-1 ring-border/70"
             />
             <div>
-              <div class="text-sm font-semibold">This week’s picks</div>
+              <div class="text-sm font-semibold">Weekly Trending</div>
               <div class="text-xs text-muted-foreground">
-                Blended by views, ratings, and saves
+                Best Novels of the Week (Updated {currentYear})
               </div>
             </div>
           </div>
@@ -340,37 +340,6 @@ Astro.response.headers.set(
             >
               View all tags <span>→</span>
             </a>
-          </div>
-
-          <div
-            class="mt-6 rounded-2xl border border-border/70 bg-background/40 p-4"
-          >
-            <div class="text-sm font-semibold">Library sync</div>
-            <div class="mt-1 text-xs text-muted-foreground">
-              {
-                user
-                  ? "Your library is up to date. Keep reading where you left off."
-                  : "Sign in to track updates, save novels, and record reading progress."
-              }
-            </div>
-            <div class="mt-4">
-              {
-                user ? (
-                  <a
-                    href="/library"
-                    class="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  >
-                    Go to my library
-                  </a>
-                ) : (
-                  <AuthDialog
-                    client:load
-                    triggerText="Sign in now"
-                    triggerClassName="inline-flex cursor-pointer h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  />
-                )
-              }
-            </div>
           </div>
         </aside>
       </div>
