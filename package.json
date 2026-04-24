@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "wrangler types && astro dev --port 5173",
-    "build": "astro build",
-    "preview": "astro preview --port 5173",
+    "build": "wrangler types && astro build",
+    "preview": "wrangler types && astro preview --port 5173",
     "db:gen": "drizzle-kit generate",
     "db:studio": "LOCAL_DB_PATH=$(ls -t .wrangler/state/v3/d1/miniflare-D1DatabaseObject/*.sqlite | grep -v metadata.sqlite | head -n 1) drizzle-kit studio --config drizzle.config.ts",
     "db:push:local": "wrangler d1 migrations apply wuxiadreams --local",
