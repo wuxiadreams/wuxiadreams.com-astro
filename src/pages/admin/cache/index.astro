@@ -1,0 +1,28 @@
+---
+import { env } from "cloudflare:workers";
+import AdminLayout from "@/layouts/admin-layout.astro";
+import CacheManager from "./_manager";
+
+const user = Astro.locals.user;
+const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
+
+// Protect admin route
+if (!user || !adminEmails.includes(user.email)) {
+  return Astro.redirect("/");
+}
+---
+
+<AdminLayout title="缓存管理 - 后台">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">缓存管理</h1>
+      <p class="text-muted-foreground mt-2">
+        管理并清理您网站的 Cloudflare 边缘缓存。
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-8 max-w-3xl">
+    <CacheManager client:load />
+  </div>
+</AdminLayout>

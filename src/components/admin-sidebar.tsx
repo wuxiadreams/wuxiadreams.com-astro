@@ -6,9 +6,8 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Users, BookOpen, Rss } from "lucide-react";
+import { Users, BookOpen, Rss, BrushCleaning } from "lucide-react";
 import { AdminSidebarMenu } from "./admin-sidebar-menu";
 import { AdminSidebarFooter } from "./admin-sidebar-footer";
 import type { User } from "better-auth";
@@ -64,6 +63,18 @@ const menus = [
       {
         title: "文章列表",
         url: "/admin/posts",
+      },
+    ],
+  },
+  {
+    title: "缓存管理",
+    url: "#",
+    icon: BrushCleaning,
+    isActive: false,
+    items: [
+      {
+        title: "清理缓存",
+        url: "/admin/cache",
       },
     ],
   },

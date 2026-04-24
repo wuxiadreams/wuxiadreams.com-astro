@@ -19,6 +19,8 @@ declare namespace Cloudflare {
 		R2_ASSETS_BUCKET: string;
 		R2_ACCESS_KEY_ID: string;
 		R2_SECRET_ACCESS_KEY: string;
+		CF_ZONE_ID: string;
+		CF_API_TOKEN: string;
 	}
 }
 interface Env extends Cloudflare.Env {}
@@ -26,7 +28,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_URL" | "BETTER_AUTH_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "ADMIN_EMAILS" | "R2_DOMAIN" | "R2_REGION" | "R2_ENDPOINT" | "R2_NOVELS_BUCKET" | "R2_ASSETS_BUCKET" | "R2_ACCESS_KEY_ID" | "R2_SECRET_ACCESS_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_URL" | "BETTER_AUTH_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "ADMIN_EMAILS" | "R2_DOMAIN" | "R2_REGION" | "R2_ENDPOINT" | "R2_NOVELS_BUCKET" | "R2_ASSETS_BUCKET" | "R2_ACCESS_KEY_ID" | "R2_SECRET_ACCESS_KEY" | "CF_ZONE_ID" | "CF_API_TOKEN">> {}
 }
 
 // Begin runtime types

@@ -19,6 +19,7 @@
     "R2_REGION": "auto",
     "R2_NOVELS_BUCKET": "novels",
     "R2_ASSETS_BUCKET": "novel-assets",
+    "CF_ZONE_ID": "ca874106396af73f58047a27a5e1a07b",
   },
   "d1_databases": [
     {
