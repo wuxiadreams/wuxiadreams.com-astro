@@ -14,7 +14,10 @@ export default defineConfig({
   redirects: {
     "/en": "/",
   },
-  prefetch: true,
+  prefetch: {
+    prefetchAll: false,
+    defaultStrategy: "hover",
+  },
   integrations: [react()],
   adapter: cloudflare(),
   vite: {

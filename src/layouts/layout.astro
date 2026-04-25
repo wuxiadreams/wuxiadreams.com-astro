@@ -37,7 +37,7 @@ const ogImage = new URL("/logo.png", Astro.site);
     <meta property="twitter:image" content={ogImage.href} />
     <meta name="generator" content={Astro.generator} />
     <meta name="color-scheme" content="dark light" />
-    <script is:inline>
+    <script is:inline data-astro-rerun>
       function applyTheme() {
         const stored = (() => {
           try {
@@ -60,6 +60,35 @@ const ogImage = new URL("/logo.png", Astro.site);
 
       // 每次 View Transitions 切换页面后重新运行
       document.addEventListener("astro:after-swap", applyTheme);
+    </script>
+    <script is:inline data-astro-rerun>
+      if (typeof window.setupThemeToggle === "undefined") {
+        window.setupThemeToggle = () => {
+          function handleThemeClick(e) {
+            const btn = e.target.closest("[data-theme-toggle]");
+            if (!btn) return;
+
+            const root = document.documentElement;
+            const nextIsDark = root.classList.toggle("dark");
+            const next = nextIsDark ? "dark" : "light";
+            root.style.colorScheme = next;
+
+            try {
+              localStorage.setItem("theme", next);
+            } catch {}
+          }
+
+          document.removeEventListener("click", handleThemeClick);
+          document.addEventListener("click", handleThemeClick);
+        };
+      }
+
+      // 1. 首次加载运行
+      window.setupThemeToggle();
+
+      // 2. 每次 View Transitions 切换页面后重新运行
+      // 确保新页面的 root 状态和事件逻辑正确
+      document.addEventListener("astro:after-swap", window.setupThemeToggle);
     </script>
   </head>
   <body>
