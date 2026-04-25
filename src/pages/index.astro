@@ -55,8 +55,9 @@ Astro.response.headers.set(
 );
 Astro.response.headers.set(
   "CDN-Cache-Control",
-  "s-max-age=86400, stale-while-revalidate=60",
+  "public, s-max-age=86400, stale-while-revalidate=60",
 );
+Astro.response.headers.delete("Set-Cookie");
 ---
 
 <Layout title="Wuxia Dreams — Discover and Track Novels">
