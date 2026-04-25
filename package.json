@@ -70,8 +70,12 @@
     "@cloudflare/workers-types": "^4.20260408.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/eslint-plugin-query": "^5.97.0",
+    "@types/dotenv": "^8.2.3",
+    "@types/sharp": "^0.32.0",
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "sharp": "^0.34.5"
   },
   "overrides": {
     "vite": "^7"
