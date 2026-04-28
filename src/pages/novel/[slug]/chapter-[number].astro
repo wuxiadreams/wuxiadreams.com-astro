@@ -466,26 +466,44 @@ Astro.response.headers.set(
   </main>
 
   <script
-    is:inline
-    define:vars={{
+    id="chapter-navigation-data"
+    type="application/json"
+    set:html={JSON.stringify({
       prevUrl: prevChapter
         ? `/novel/${novelData.slug}/chapter-${prevChapter.number}`
         : null,
       nextUrl: nextChapter
         ? `/novel/${novelData.slug}/chapter-${nextChapter.number}`
         : null,
-    }}
-  >
-    document.addEventListener("keydown", (e) => {
-      // Don't trigger if user is typing in an input or textarea
-      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
-        return;
+    })}
+  />
 
-      if (e.key === "ArrowLeft" && prevUrl) {
-        window.location.href = prevUrl;
-      } else if (e.key === "ArrowRight" && nextUrl) {
-        window.location.href = nextUrl;
-      }
+  <script>
+    import { navigate } from "astro:transitions/client";
+
+    document.addEventListener("astro:page-load", () => {
+      const scriptTag = document.getElementById("chapter-navigation-data");
+      if (!scriptTag) return;
+
+      const { prevUrl, nextUrl } = JSON.parse(scriptTag.textContent || "{}");
+
+      const handleKeydown = (e: KeyboardEvent) => {
+        // Don't trigger if user is typing in an input or textarea
+        if (
+          e.target instanceof HTMLElement &&
+          (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
+        )
+          return;
+
+        if (e.key === "ArrowLeft" && prevUrl) {
+          navigate(prevUrl);
+        } else if (e.key === "ArrowRight" && nextUrl) {
+          navigate(nextUrl);
+        }
+      };
+
+      document.removeEventListener("keydown", handleKeydown);
+      document.addEventListener("keydown", handleKeydown);
     });
   </script>
 </Layout>
