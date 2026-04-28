@@ -87,8 +87,31 @@ const ogImage = new URL("/logo.png", Astro.site);
       window.setupThemeToggle();
 
       // 2. 每次 View Transitions 切换页面后重新运行
-      // 确保新页面的 root 状态和事件逻辑正确
       document.addEventListener("astro:after-swap", window.setupThemeToggle);
+    </script>
+
+    <script is:inline id="sharethis-script" type="text/javascript" defer
+    ></script>
+    <script is:inline>
+      function reloadShareThis() {
+        const oldScript = document.getElementById("sharethis-script");
+        if (oldScript) {
+          oldScript.remove();
+        }
+
+        window.__sharethis__ = null;
+        const container = document.querySelector(".sharethis-share-buttons");
+        if (!container) return;
+
+        const newScript = document.createElement("script");
+        newScript.id = "sharethis-script";
+        newScript.src = "/js/sharethis.min.js";
+        newScript.defer = true;
+
+        document.head.appendChild(newScript);
+      }
+
+      document.addEventListener("astro:page-load", reloadShareThis);
     </script>
   </head>
   <body>

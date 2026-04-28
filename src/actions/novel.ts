@@ -12,7 +12,7 @@ import {
   chapter,
   dailyStat,
 } from "@/db/schema";
-import { eq, asc, and, desc, sql } from "drizzle-orm";
+import { eq, asc, and, desc, sql, or, like, count } from "drizzle-orm";
 
 export const novelActions = {
   getNovelInfo: defineAction({
@@ -188,6 +188,46 @@ export const novelActions = {
         totalChapters,
         firstChapterData,
         authorOtherNovels,
+      };
+    },
+  }),
+  getList: defineAction({
+    accept: "json",
+    input: z.object({
+      page: z.number().default(1),
+      search: z.string().optional(),
+      sort: z.enum(["update", "score"]).default("update"),
+      limit: z.number().default(20),
+    }),
+    handler: async ({ page, search, sort, limit }) => {
+      let searchClause = undefined;
+      if (search) {
+        searchClause = or(
+          like(novel.title, `%${search}%`),
+          like(novel.titleAlt, `%${search}%`),
+        );
+      }
+
+      const whereClause = and(eq(novel.published, true), searchClause);
+
+      let orderByClause = [desc(novel.updatedAt)];
+      if (sort === "score") {
+        orderByClause = [desc(novel.score), desc(novel.updatedAt)];
+      }
+
+      const [totalResult, novelsList] = await Promise.all([
+        db.select({ value: count() }).from(novel).where(whereClause),
+        db.query.novel.findMany({
+          where: whereClause,
+          orderBy: orderByClause,
+          limit: limit,
+          offset: (page - 1) * limit,
+        }),
+      ]);
+
+      return {
+        totalNovels: totalResult[0].value,
+        novels: novelsList,
       };
     },
   }),

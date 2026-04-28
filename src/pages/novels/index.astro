@@ -2,46 +2,27 @@
 import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
 import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
-import { like, count, desc, or, eq, and } from "drizzle-orm";
-import * as schema from "@/db/schema";
-
-const db = drizzle(env.DB, { schema });
+import { actions } from "astro:actions";
 
 const url = new URL(Astro.request.url);
 const currentPage = parseInt(url.searchParams.get("page") || "1");
 const searchQuery = url.searchParams.get("q") || "";
-const sortBy = url.searchParams.get("sort") || "update"; // "update" | "score"
+const sortBy = (url.searchParams.get("sort") as "update" | "score") || "update";
 const pageSize = 20;
 
-let searchClause = undefined;
-if (searchQuery) {
-  searchClause = or(
-    like(schema.novel.title, `%${searchQuery}%`),
-    like(schema.novel.titleAlt, `%${searchQuery}%`),
-  );
-}
-
-const whereClause = and(eq(schema.novel.published, true), searchClause);
-
-const [{ value: totalNovels }] = await db
-  .select({ value: count() })
-  .from(schema.novel)
-  .where(whereClause);
-
-// 根据 sort 参数决定排序方式
-let orderByClause = [desc(schema.novel.updatedAt)];
-if (sortBy === "score") {
-  orderByClause = [desc(schema.novel.score), desc(schema.novel.updatedAt)];
-}
-
-const novels = await db.query.novel.findMany({
-  where: whereClause,
-  orderBy: orderByClause,
+const { data, error } = await Astro.callAction(actions.novel.getList, {
+  page: currentPage,
+  search: searchQuery,
+  sort: sortBy,
   limit: pageSize,
-  offset: (currentPage - 1) * pageSize,
 });
 
+if (error) {
+  console.error("Error fetching novels:", error);
+}
+
+const totalNovels = data?.totalNovels || 0;
+const novels = data?.novels || [];
 const totalPages = Math.max(1, Math.ceil(totalNovels / pageSize));
 
 // Generate pagination links
