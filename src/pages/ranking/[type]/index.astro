@@ -14,7 +14,7 @@ const metadata = RANKING_METADATA[type];
 
 Astro.response.headers.set(
   "Cache-Control",
-  "public, max-age=60, s-maxage=86400, stale-while-revalidate=60",
+  "public, max-age=300, s-maxage=86400, stale-while-revalidate=300",
 );
 ---
 
@@ -23,30 +23,70 @@ Astro.response.headers.set(
   description={metadata.description}
 >
   <main class="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-    <nav class="mb-8 flex text-sm text-muted-foreground" aria-label="Breadcrumb">
+    <nav
+      class="mb-8 flex text-sm text-muted-foreground"
+      aria-label="Breadcrumb"
+    >
       <ol class="inline-flex items-center space-x-1 md:space-x-2">
         <li class="inline-flex items-center">
-          <a href="/" class="hover:text-foreground transition-colors flex items-center gap-1.5">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          <a
+            href="/"
+            class="hover:text-foreground transition-colors flex items-center gap-1.5"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              ></path>
             </svg>
             Home
           </a>
         </li>
         <li>
           <div class="flex items-center">
-            <svg class="h-4 w-4 mx-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <svg
+              class="h-4 w-4 mx-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"></path>
             </svg>
-            <a href="/rankings" class="hover:text-foreground transition-colors ml-1 md:ml-2">Rankings</a>
+            <a
+              href="/rankings"
+              class="hover:text-foreground transition-colors ml-1 md:ml-2"
+              >Rankings</a
+            >
           </div>
         </li>
         <li aria-current="page">
           <div class="flex items-center">
-            <svg class="h-4 w-4 mx-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <svg
+              class="h-4 w-4 mx-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"></path>
             </svg>
-            <span class="text-foreground ml-1 md:ml-2 font-medium">{metadata.title}</span>
+            <span class="text-foreground ml-1 md:ml-2 font-medium"
+              >{metadata.title}</span
+            >
           </div>
         </li>
       </ol>

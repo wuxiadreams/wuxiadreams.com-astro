@@ -53,7 +53,7 @@ const currentYear = new Date().getFullYear();
 
 Astro.response.headers.set(
   "Cache-Control",
-  "public, max-age=60, s-maxage=86400, stale-while-revalidate=60",
+  "public, max-age=300, s-maxage=86400, stale-while-revalidate=300",
 );
 ---
 
