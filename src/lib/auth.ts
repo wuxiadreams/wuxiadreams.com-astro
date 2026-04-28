@@ -9,6 +9,9 @@ const db = drizzle(env.DB, { schema });
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "sqlite" }),
   advanced: {
+    ipAddress: {
+      ipAddressHeaders: ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"],
+    },
     database: {
       generateId: () => crypto.randomUUID(),
     },
