@@ -162,6 +162,11 @@ export const novel = sqliteTable(
       table.published,
       desc(table.viewCount),
     ),
+    index("novel_published_score_idx").on(table.published, desc(table.score)),
+    index("novel_published_updated_at_idx").on(
+      table.published,
+      desc(table.updatedAt),
+    ),
     check("bookmark_count_check", sql`${table.bookmarkCount} >= 0`),
   ],
 );
