@@ -112,7 +112,10 @@ export function ChapterSettings({
           {showText && "Settings"}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 p-2">
+      <DropdownMenuContent
+        align="end"
+        className="w-64 p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
+      >
         <DropdownMenuLabel>Display Settings</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
