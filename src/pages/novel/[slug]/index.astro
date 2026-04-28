@@ -561,7 +561,8 @@ Astro.response.headers.set(
         </div>
         {/* 外部链接 */}
         {
-          (novelData.officialLink || novelData.translatedLink) && (
+          (novelData.officialLink ||
+            (novelData.chapterCount === 0 && novelData.translatedLink)) && (
             <div class="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
               <h3 class="mb-4 font-semibold text-foreground">External Links</h3>
               <div class="flex flex-col gap-3">
@@ -588,7 +589,7 @@ Astro.response.headers.set(
                     Official Raw
                   </a>
                 )}
-                {novelData.translatedLink && (
+                {novelData.chapterCount === 0 && novelData.translatedLink && (
                   <a
                     href={novelData.translatedLink}
                     target="_blank"
