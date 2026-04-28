@@ -26,6 +26,7 @@ export const server = {
       console.log("=======测试: getHomeData Invoked=======");
       const [
         weeklyPicks,
+        monthlyPicks,
         latestUpdatedNovels,
         editorsPicks,
         mostViewed,
@@ -33,6 +34,7 @@ export const server = {
         trendingCategories,
       ] = await Promise.all([
         fetchRankingData(db, RANK_TYPE.WEEKLY, 3),
+        fetchRankingData(db, RANK_TYPE.MONTHLY, 3),
         db.query.novel.findMany({
           where: and(eq(novel.published, true), sql`${novel.chapterCount} > 0`),
           orderBy: [desc(novel.updatedAt)],
@@ -82,6 +84,7 @@ export const server = {
 
       return {
         weeklyPicks,
+        monthlyPicks,
         latestUpdatedNovels,
         editorsPicks,
         mostViewed,

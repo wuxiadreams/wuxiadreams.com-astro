@@ -14,6 +14,7 @@ if (!data) {
 
 const {
   weeklyPicks,
+  monthlyPicks,
   latestUpdatedNovels,
   editorsPicks,
   mostViewed,
@@ -133,25 +134,48 @@ Astro.response.headers.set(
         </div>
 
         <aside
-          class="rounded-3xl border border-border/70 bg-card/60 p-5 shadow-[0_24px_70px_hsl(222_47%_7%/0.55)] backdrop-blur"
+          class="rounded-3xl border border-border/70 bg-card/60 p-5 shadow-[0_24px_70px_hsl(222_47%_7%/0.55)] backdrop-blur flex flex-col"
+          id="trending-container"
         >
-          <div class="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              width="40"
-              height="40"
-              alt="Wuxia Dreams logo"
-              class="h-10 w-10 rounded-xl ring-1 ring-border/70"
-            />
-            <div>
-              <div class="text-sm font-semibold">Weekly Trending</div>
-              <div class="text-xs text-muted-foreground">
-                Best Novels of the Week (Updated {currentYear})
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <img
+                src="/logo.png"
+                width="40"
+                height="40"
+                alt="Wuxia Dreams logo"
+                class="h-10 w-10 rounded-xl ring-1 ring-border/70"
+              />
+              <div>
+                <div class="text-sm font-semibold">Trending novels</div>
+                <div
+                  class="text-xs text-muted-foreground"
+                  id="trending-subtitle"
+                >
+                  Best Novels of the Week (Updated {currentYear})
+                </div>
               </div>
             </div>
           </div>
 
-          <ol class="mt-5 grid gap-3">
+          <div
+            class="flex items-center rounded-lg border border-border/60 bg-muted/30 p-1 mb-2"
+          >
+            <button
+              id="tab-weekly"
+              class="flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all bg-background text-foreground shadow-sm"
+            >
+              Weekly
+            </button>
+            <button
+              id="tab-monthly"
+              class="flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all text-muted-foreground hover:text-foreground"
+            >
+              Monthly
+            </button>
+          </div>
+
+          <ol class="grid gap-3" id="list-weekly">
             {
               weeklyPicks.map((item, idx) => (
                 <li class="flex items-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-3 transition-colors hover:bg-background/60 overflow-hidden">
@@ -186,12 +210,50 @@ Astro.response.headers.set(
             }
           </ol>
 
-          <a
-            href="/ranking/weekly"
-            class="mt-5 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
-          >
-            View full rankings
-          </a>
+          <ol class="grid gap-3 hidden" id="list-monthly">
+            {
+              monthlyPicks.map((item, idx) => (
+                <li class="flex items-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-3 transition-colors hover:bg-background/60 overflow-hidden">
+                  <div
+                    class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
+                      idx === 0
+                        ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-500"
+                        : idx === 1
+                          ? "bg-slate-300/30 text-slate-500 dark:text-slate-400"
+                          : "bg-amber-700/20 text-amber-700 dark:text-amber-600"
+                    }`}
+                  >
+                    {idx + 1}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <a
+                      href={`/novel/${item.slug}`}
+                      class="block truncate text-sm font-semibold hover:text-primary transition-colors"
+                    >
+                      {item.title}
+                    </a>
+                    <div class="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      <span class="truncate">{item.status}</span>
+                      <span>•</span>
+                      <span>
+                        {(item.rankScore || 0).toLocaleString()} views
+                      </span>
+                    </div>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+
+          <div class="mt-auto pt-5">
+            <a
+              id="trending-link"
+              href="/ranking/weekly"
+              class="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            >
+              View full rankings
+            </a>
+          </div>
         </aside>
       </div>
     </section>
@@ -447,3 +509,62 @@ Astro.response.headers.set(
     </section>
   </main>
 </Layout>
+
+<script>
+  function setupTrendingTabs() {
+    const tabWeekly = document.getElementById("tab-weekly");
+    const tabMonthly = document.getElementById("tab-monthly");
+    const listWeekly = document.getElementById("list-weekly");
+    const listMonthly = document.getElementById("list-monthly");
+    const subtitle = document.getElementById("trending-subtitle");
+    const link = document.getElementById("trending-link");
+
+    if (
+      !tabWeekly ||
+      !tabMonthly ||
+      !listWeekly ||
+      !listMonthly ||
+      !subtitle ||
+      !link
+    )
+      return;
+
+    const currentYear = new Date().getFullYear();
+
+    tabWeekly.addEventListener("click", () => {
+      // 样式切换
+      tabWeekly.className =
+        "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all bg-background text-foreground shadow-sm";
+      tabMonthly.className =
+        "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all text-muted-foreground hover:text-foreground";
+
+      // 内容切换
+      listWeekly.classList.remove("hidden");
+      listMonthly.classList.add("hidden");
+
+      // 文案和链接切换
+      subtitle.textContent = `Best Novels of the Week (Updated ${currentYear})`;
+      link.setAttribute("href", "/ranking/weekly");
+    });
+
+    tabMonthly.addEventListener("click", () => {
+      // 样式切换
+      tabMonthly.className =
+        "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all bg-background text-foreground shadow-sm";
+      tabWeekly.className =
+        "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all text-muted-foreground hover:text-foreground";
+
+      // 内容切换
+      listMonthly.classList.remove("hidden");
+      listWeekly.classList.add("hidden");
+
+      // 文案和链接切换
+      subtitle.textContent = `Best Novels of the Month (Updated ${currentYear})`;
+      link.setAttribute("href", "/ranking/monthly");
+    });
+  }
+
+  // 页面加载和 View Transitions 时初始化
+  setupTrendingTabs();
+  document.addEventListener("astro:after-swap", setupTrendingTabs);
+</script>
