@@ -16,6 +16,7 @@ const {
   weeklyPicks,
   latestUpdatedNovels,
   editorsPicks,
+  mostViewed,
   popularTags,
   trendingCategories,
 } = data;
@@ -262,6 +263,107 @@ Astro.response.headers.set(
       </div>
     </section>
 
+    {/* 新增的 Most Viewed 模块 */}
+    <section
+      class="mx-auto max-w-6xl px-4 py-12 border-t border-border/60 bg-muted/10"
+    >
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Most Viewed</h2>
+          <p class="mt-1 text-sm text-muted-foreground">
+            The most popular novels in our library
+          </p>
+        </div>
+        <a
+          href="/ranking/view"
+          class="hidden text-sm font-semibold text-primary underline-offset-4 hover:underline sm:inline"
+        >
+          View all
+        </a>
+      </div>
+
+      <div
+        class="mt-8 grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      >
+        {
+          mostViewed.map((novel) => (
+            <a
+              href={`/novel/${novel.slug}`}
+              class="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+            >
+              <div class="aspect-2/3 w-full overflow-hidden bg-muted relative">
+                <div class="absolute left-2 top-2 z-10">
+                  <span
+                    class={`inline-flex items-center rounded-full border border-transparent px-2.5 py-0.5 text-[10px] font-semibold lowercase tracking-wider shadow backdrop-blur-sm ${novel.status === "ongoing" ? "bg-chart-4/90 text-zinc-950" : "bg-primary/90 text-primary-foreground"}`}
+                  >
+                    {novel.status}
+                  </span>
+                </div>
+                {novel.cover ? (
+                  <Image
+                    src={`https://${env.R2_DOMAIN}/${novel.cover}`}
+                    alt={novel.title}
+                    width={200}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div class="flex h-full w-full items-center justify-center text-muted-foreground">
+                    No cover
+                  </div>
+                )}
+              </div>
+              <div class="flex flex-1 flex-col p-4">
+                <h3 class="line-clamp-2 text-base font-semibold leading-tight group-hover:text-primary transition-colors">
+                  {novel.title}
+                </h3>
+                <div class="mt-2 text-xs text-muted-foreground flex items-center">
+                  <span>{novel.chapterCount} Chapters</span>
+                </div>
+                <div class="mt-auto pt-3 flex items-center justify-between text-xs text-muted-foreground">
+                  <span class="flex items-center gap-1">
+                    <svg
+                      class="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                    {novel.viewCount.toLocaleString()}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg
+                      class="h-3.5 w-3.5 text-yellow-500"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    {(novel.score || 0).toFixed(1)}
+                  </span>
+                </div>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
     <section class="mx-auto max-w-6xl px-4 pb-14">
       <div class="grid gap-8 md:grid-cols-[1.6fr_0.8fr]">
         <div class="min-w-0">
@@ -275,7 +377,7 @@ Astro.response.headers.set(
               </p>
             </div>
             <a
-              href="/updates"
+              href="/novels"
               class="hidden text-sm font-semibold text-primary underline-offset-4 hover:underline sm:inline"
             >
               View all

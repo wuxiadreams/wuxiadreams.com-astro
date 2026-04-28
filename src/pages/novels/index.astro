@@ -11,6 +11,7 @@ const db = drizzle(env.DB, { schema });
 const url = new URL(Astro.request.url);
 const currentPage = parseInt(url.searchParams.get("page") || "1");
 const searchQuery = url.searchParams.get("q") || "";
+const sortBy = url.searchParams.get("sort") || "update"; // "update" | "score"
 const pageSize = 20;
 
 let searchClause = undefined;
@@ -28,9 +29,15 @@ const [{ value: totalNovels }] = await db
   .from(schema.novel)
   .where(whereClause);
 
+// 根据 sort 参数决定排序方式
+let orderByClause = [desc(schema.novel.updatedAt)];
+if (sortBy === "score") {
+  orderByClause = [desc(schema.novel.score), desc(schema.novel.updatedAt)];
+}
+
 const novels = await db.query.novel.findMany({
   where: whereClause,
-  orderBy: [desc(schema.novel.createdAt)],
+  orderBy: orderByClause,
   limit: pageSize,
   offset: (currentPage - 1) * pageSize,
 });
@@ -62,42 +69,100 @@ Astro.response.headers.set(
       </p>
     </div>
 
-    <div
-      class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <form action="/novels" method="get" class="w-full sm:max-w-md">
-        <label class="relative block">
-          <input
-            name="q"
-            value={searchQuery}
-            placeholder="Search by title..."
-            class="h-10 w-full rounded-xl border border-input bg-background/60 px-4 pr-12 text-sm shadow-sm transition placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-          />
-          <button
-            type="submit"
-            class="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-muted text-muted-foreground transition hover:text-foreground"
-            aria-label="Search"
-          >
-            <svg
-              class="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+    <div class="mb-8 flex flex-col gap-6">
+      {/* 顶部搜索框 */}
+      <div class="flex justify-start">
+        <form action="/novels" method="get" class="w-full sm:w-80 md:w-96">
+          <label class="relative block">
+            <input
+              name="q"
+              value={searchQuery}
+              placeholder="Search by title..."
+              class="h-10 w-full rounded-xl border border-input bg-background/60 px-4 pr-12 text-sm shadow-sm transition placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            />
+            {
+              sortBy !== "update" && (
+                <input type="hidden" name="sort" value={sortBy} />
+              )
+            }
+            <button
+              type="submit"
+              class="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md bg-muted text-muted-foreground transition hover:text-foreground"
+              aria-label="Search"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </button>
-        </label>
-      </form>
+              <svg
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
+          </label>
+        </form>
+      </div>
 
-      <div class="text-sm text-muted-foreground">
-        Showing {Math.min((currentPage - 1) * pageSize + 1, totalNovels)} - {
-          Math.min(currentPage * pageSize, totalNovels)
-        } of {totalNovels} novels
+      {/* 下方排序选项与数量统计 */}
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+          <span class="text-sm font-medium text-muted-foreground shrink-0"
+            >Sort by:</span
+          >
+          <div
+            class="flex items-center rounded-lg border border-border/60 bg-muted/30 p-1 shrink-0 w-full sm:w-auto"
+          >
+            <a
+              href={`?${searchQuery ? `q=${encodeURIComponent(searchQuery)}&` : ""}sort=update`}
+              class={`flex flex-1 justify-center sm:flex-none items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${sortBy === "update" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <svg
+                class="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Latest Update
+            </a>
+            <a
+              href={`?${searchQuery ? `q=${encodeURIComponent(searchQuery)}&` : ""}sort=score`}
+              class={`flex flex-1 justify-center sm:flex-none items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${sortBy === "score" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <svg
+                class="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                ></path>
+              </svg>
+              Highest Rated
+            </a>
+          </div>
+        </div>
+
+        <div class="text-sm text-muted-foreground">
+          Showing {Math.min((currentPage - 1) * pageSize + 1, totalNovels)} - {
+            Math.min(currentPage * pageSize, totalNovels)
+          } of {totalNovels} novels
+        </div>
       </div>
     </div>
 

@@ -28,6 +28,7 @@ export const server = {
         weeklyPicks,
         latestUpdatedNovels,
         editorsPicks,
+        mostViewed,
         popularTags,
         trendingCategories,
       ] = await Promise.all([
@@ -62,6 +63,7 @@ export const server = {
             },
           },
         }),
+        fetchRankingData(db, RANK_TYPE.VIEW, 10),
         db
           .select({
             id: tag.id,
@@ -82,6 +84,7 @@ export const server = {
         weeklyPicks,
         latestUpdatedNovels,
         editorsPicks,
+        mostViewed,
         popularTags,
         trendingCategories,
       };
