@@ -3,6 +3,7 @@ import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { actions } from "astro:actions";
 import { formatDate } from "@/lib/utils";
+import { formatImageUrl } from "@/lib/file";
 import { ChapterSettings } from "@/components/chapter-settings";
 import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
 
@@ -70,7 +71,7 @@ const jsonLd = {
   "@type": "Book",
   name: novelData.title,
   description: novelData.synopsis,
-  image: `https://${r2Domain}/${novelData.cover}`,
+  image: formatImageUrl(r2Domain, novelData.cover, novelData.updatedAt),
   review: [
     {
       "@type": "Review",

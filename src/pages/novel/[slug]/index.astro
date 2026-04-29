@@ -76,7 +76,7 @@ const jsonLd = {
   "@type": "Book",
   name: novelData.title,
   description: novelData.synopsis,
-  image: `https://${r2Domain}/${novelData.cover}`,
+  image: formatImageUrl(r2Domain, novelData.cover, novelData.updatedAt),
   review: [
     {
       "@type": "Review",
