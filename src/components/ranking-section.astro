@@ -2,6 +2,7 @@
 import { env } from "cloudflare:workers";
 import { drizzle } from "drizzle-orm/d1";
 import { Image } from "astro:assets";
+import { formatImageUrl } from "@/lib/file";
 import * as schema from "@/db/schema";
 import { fetchRankingData, RANKING_METADATA } from "@/lib/rankings";
 
@@ -68,7 +69,7 @@ Astro.response.headers.set(
           <div class="h-16 w-12 shrink-0 overflow-hidden rounded bg-muted/50 relative shadow-sm">
             {novel.cover ? (
               <Image
-                src={`https://${r2Domain}/${novel.cover}`}
+                src={formatImageUrl(r2Domain, novel.cover, novel.updatedAt)}
                 alt={novel.title}
                 width={48}
                 height={64}

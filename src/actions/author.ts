@@ -73,11 +73,15 @@ export const authorActions = {
           score: novel.score,
           viewCount: novel.viewCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novelAuthor)
         .innerJoin(novel, eq(novelAuthor.novelId, novel.id))
         .where(
-          and(eq(novelAuthor.authorId, authorData.id), eq(novel.published, true)),
+          and(
+            eq(novelAuthor.authorId, authorData.id),
+            eq(novel.published, true),
+          ),
         )
         .orderBy(desc(novel.viewCount));
 

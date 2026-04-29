@@ -6,6 +6,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { eq, desc, count } from "drizzle-orm";
 import * as schema from "@/db/schema";
 import { formatDate } from "@/lib/utils";
+import { formatImageUrl } from "@/lib/file";
 import { RemoveLibraryButton } from "@/components/remove-library-button";
 
 // Check authentication
@@ -84,7 +85,11 @@ const r2Domain = env.R2_DOMAIN;
                   </div>
                   {novel.cover ? (
                     <Image
-                      src={`https://${r2Domain}/${novel.cover}`}
+                      src={formatImageUrl(
+                        r2Domain,
+                        novel.cover,
+                        novel.updatedAt,
+                      )}
                       alt={novel.title}
                       width={200}
                       height={300}

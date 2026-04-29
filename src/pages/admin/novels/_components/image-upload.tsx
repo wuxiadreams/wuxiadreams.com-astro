@@ -28,8 +28,6 @@ export function ImageUpload({
       return;
     }
 
-    console.log(files);
-
     const file = files[0];
 
     try {
@@ -96,7 +94,7 @@ export function ImageUpload({
       ) : (
         <div className="relative overflow-hidden p-0 border-none bg-transparent flex justify-center h-[200px] sm:h-[300px]">
           <img
-            src={`https://${r2Domain}/${value}`}
+            src={`https://${r2Domain}/${value}?v=${uploadKey}`}
             alt="Cover Preview"
             className="h-full min-w-[200px] object-contain rounded-md border border-border/50 bg-muted/10 shadow-sm"
           />

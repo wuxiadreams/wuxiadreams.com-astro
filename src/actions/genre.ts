@@ -115,6 +115,7 @@ export const genreActions = {
           score: novel.score,
           viewCount: novel.viewCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novelCategory)
         .innerJoin(novel, eq(novelCategory.novelId, novel.id))

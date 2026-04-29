@@ -1,8 +1,9 @@
 ---
 import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
-import { Image } from "astro:assets";
 import { actions } from "astro:actions";
+import { Image } from "astro:assets";
+import { formatImageUrl } from "@/lib/file";
 
 const { slug } = Astro.params;
 
@@ -179,7 +180,11 @@ Astro.response.headers.set(
                     </div>
                     {novel.cover ? (
                       <Image
-                        src={`https://${r2Domain}/${novel.cover}`}
+                        src={formatImageUrl(
+                          r2Domain,
+                          novel.cover,
+                          novel.updatedAt,
+                        )}
                         alt={novel.title}
                         width={200}
                         height={300}

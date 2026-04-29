@@ -2,8 +2,9 @@
 import { env } from "cloudflare:workers";
 import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
-import { AddToLibraryButton } from "@/components/add-to-library-button";
 import { actions } from "astro:actions";
+import { AddToLibraryButton } from "@/components/add-to-library-button";
+import { formatImageUrl } from "@/lib/file";
 
 const { slug } = Astro.params;
 const url = new URL(Astro.request.url);
@@ -162,7 +163,11 @@ Astro.response.headers.set(
               {
                 novelData.cover ? (
                   <Image
-                    src={`https://${r2Domain}/${novelData.cover}`}
+                    src={formatImageUrl(
+                      r2Domain,
+                      novelData.cover,
+                      novelData.updatedAt,
+                    )}
                     alt={novelData.title}
                     width={300}
                     height={450}
@@ -636,7 +641,7 @@ Astro.response.headers.set(
                     <div class="relative w-12 h-16 shrink-0 overflow-hidden rounded-md border border-border/50 bg-muted">
                       {n.cover ? (
                         <Image
-                          src={`https://${r2Domain}/${n.cover}`}
+                          src={formatImageUrl(r2Domain, n.cover, n.updatedAt)}
                           alt={n.title}
                           width={48}
                           height={64}

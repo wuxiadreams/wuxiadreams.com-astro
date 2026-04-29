@@ -13,7 +13,8 @@ export type RankingItem = {
   score: number;
   bookmarkCount: number;
   chapterCount: number;
-  rankScore?: number; // for stored rankings
+  updatedAt: Date;
+  rankScore?: number;
 };
 
 export async function fetchRankingData(
@@ -35,6 +36,7 @@ export async function fetchRankingData(
           score: novel.score,
           bookmarkCount: novel.bookmarkCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novel)
         .where(eq(novel.published, true))
@@ -54,6 +56,7 @@ export async function fetchRankingData(
           score: novel.score,
           bookmarkCount: novel.bookmarkCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novel)
         .where(eq(novel.published, true))
@@ -73,6 +76,7 @@ export async function fetchRankingData(
           score: novel.score,
           bookmarkCount: novel.bookmarkCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novel)
         .where(eq(novel.published, true))
@@ -92,6 +96,7 @@ export async function fetchRankingData(
           score: novel.score,
           bookmarkCount: novel.bookmarkCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novel)
         .where(and(eq(novel.published, true), eq(novel.isPinned, true)))
@@ -114,6 +119,7 @@ export async function fetchRankingData(
           bookmarkCount: novel.bookmarkCount,
           chapterCount: novel.chapterCount,
           rankScore: ranking.score,
+          updatedAt: novel.updatedAt,
         })
         .from(ranking)
         .innerJoin(novel, eq(ranking.novelId, novel.id))

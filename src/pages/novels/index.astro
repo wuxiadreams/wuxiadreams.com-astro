@@ -3,6 +3,7 @@ import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
 import { env } from "cloudflare:workers";
 import { actions } from "astro:actions";
+import { formatImageUrl } from "@/lib/file";
 
 const url = new URL(Astro.request.url);
 const currentPage = parseInt(url.searchParams.get("page") || "1");
@@ -165,7 +166,7 @@ Astro.response.headers.set(
                 </div>
                 {novel.cover ? (
                   <Image
-                    src={`https://${r2Domain}/${novel.cover}`}
+                    src={formatImageUrl(r2Domain, novel.cover, novel.updatedAt)}
                     alt={novel.title}
                     width={200}
                     height={300}

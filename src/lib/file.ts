@@ -1,3 +1,7 @@
+export function formatImageUrl(domain: string, url: string, updatedAt?: Date) {
+  return `https://${domain}/${url}${updatedAt ? `?v=${updatedAt.getTime()}` : ""}`;
+}
+
 /**
  * 统计文本中的【词语数量 (Token Count)】。
  * * 计算方式：将文本内容按非词语边界（如空格、标点）分割，统计有效的词语单元数量。

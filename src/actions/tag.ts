@@ -78,6 +78,7 @@ export const tagActions = {
           score: novel.score,
           viewCount: novel.viewCount,
           chapterCount: novel.chapterCount,
+          updatedAt: novel.updatedAt,
         })
         .from(novelTag)
         .innerJoin(novel, eq(novelTag.novelId, novel.id))

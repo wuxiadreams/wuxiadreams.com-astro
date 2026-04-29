@@ -1,9 +1,10 @@
 ---
 import { formatDistanceToNow } from "date-fns";
-import Layout from "@/layouts/layout.astro";
-import { Image } from "astro:assets";
 import { env } from "cloudflare:workers";
 import { actions } from "astro:actions";
+import { Image } from "astro:assets";
+import { formatImageUrl } from "@/lib/file";
+import Layout from "@/layouts/layout.astro";
 
 const res = await Astro.callAction(actions.getHomeData, {});
 const data = res.data;
@@ -12,6 +13,7 @@ if (!data) {
   throw new Error("Failed to load home page data");
 }
 
+const r2Domain = env.R2_DOMAIN;
 const {
   weeklyPicks,
   monthlyPicks,
@@ -45,7 +47,7 @@ const featured = editorsPicks.map((novel: any) => {
     slug: novel.slug,
     author: authorName,
     tag: tagName,
-    cover: `https://${env.R2_DOMAIN}/${novel.cover}`,
+    cover: formatImageUrl(r2Domain, novel.cover, novel.updatedAt),
   };
 });
 
@@ -371,7 +373,7 @@ Astro.response.headers.set(
                 </div>
                 {novel.cover ? (
                   <Image
-                    src={`https://${env.R2_DOMAIN}/${novel.cover}`}
+                    src={formatImageUrl(r2Domain, novel.cover, novel.updatedAt)}
                     alt={novel.title}
                     width={200}
                     height={300}

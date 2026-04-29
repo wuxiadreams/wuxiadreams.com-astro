@@ -161,6 +161,7 @@ export const novelActions = {
             score: novel.score,
             status: novel.status,
             chapterCount: novel.chapterCount,
+            updatedAt: novel.updatedAt,
           })
           .from(novel)
           .innerJoin(novelAuthor, eq(novel.id, novelAuthor.novelId))
