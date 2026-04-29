@@ -21,9 +21,14 @@ export function ImageUpload({
   disabled,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadKey, setUploadKey] = useState(Date.now());
 
   const handleValueChange = async (files: File[]) => {
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    console.log(files);
 
     const file = files[0];
 
@@ -52,6 +57,7 @@ export function ImageUpload({
 
   return (
     <FileUpload
+      key={uploadKey}
       accept="image/*"
       maxFiles={1}
       maxSize={5 * 1024 * 1024} // 5MB
@@ -97,7 +103,10 @@ export function ImageUpload({
           <button
             type="button"
             className="absolute right-2 top-2 rounded-full bg-background/80 p-1.5 shadow-sm backdrop-blur-sm transition-colors hover:bg-destructive hover:text-destructive-foreground z-10"
-            onClick={() => onChange("")}
+            onClick={() => {
+              onChange("");
+              setUploadKey(Date.now()); // 强制重新挂载 FileUpload，清空其内部的 File 缓存状态
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
