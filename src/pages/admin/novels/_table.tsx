@@ -441,18 +441,18 @@ export default function NovelTable() {
             </div>
             <div className="rounded-lg border bg-muted/30 p-4">
               <p className="text-sm text-muted-foreground">
-                未上传章节的小说数量
+                ✅ 已上传章节的小说数量
               </p>
-              <p className="mt-1 text-2xl font-semibold">
-                {statsData?.chapterCountZero ?? 0}
+              <p className="mt-1 text-2xl font-semibold text-green-600">
+                {statsData?.chapterCountNonZero ?? 0}
               </p>
             </div>
             <div className="rounded-lg border bg-muted/30 p-4">
               <p className="text-sm text-muted-foreground">
-                已上传章节的小说数量
+                ❌ 未上传章节的小说数量
               </p>
               <p className="mt-1 text-2xl font-semibold">
-                {statsData?.chapterCountNonZero ?? 0}
+                {statsData?.chapterCountZero ?? 0}
               </p>
             </div>
           </div>
