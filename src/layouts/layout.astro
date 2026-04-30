@@ -132,7 +132,8 @@ const ogImage = new URL("/logo.png", Astro.site);
 
   nprogress.configure({
     parent: "html",
-    trickleSpeed: 200,
+    trickleSpeed: 400,
+    minimum: 0.1,
     showSpinner: true,
   });
 
