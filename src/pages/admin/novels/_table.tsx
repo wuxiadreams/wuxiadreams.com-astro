@@ -32,6 +32,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -59,6 +66,13 @@ export default function NovelTable() {
   const [publishedFilter, setPublishedFilter] = useState<
     "all" | "true" | "false"
   >("all");
+  const [isStatsLoading, setIsStatsLoading] = useState(false);
+  const [statsDialogOpen, setStatsDialogOpen] = useState(false);
+  const [statsData, setStatsData] = useState<{
+    total: number;
+    chapterCountZero: number;
+    chapterCountNonZero: number;
+  } | null>(null);
 
   // Delete Confirmation state
   const [deletingNovel, setDeletingNovel] = useState<NovelType | null>(null);
@@ -134,6 +148,32 @@ export default function NovelTable() {
     queryClient.invalidateQueries({ queryKey: ["novels"] });
   };
 
+  const handleShowNovelStats = async () => {
+    if (isStatsLoading) return;
+
+    setIsStatsLoading(true);
+    try {
+      const res = await fetch("/api/novels/stat");
+      if (!res.ok) {
+        const errorData = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(errorData.error || "获取小说统计失败");
+      }
+      const response = (await res.json()) as {
+        total: number;
+        chapterCountZero: number;
+        chapterCountNonZero: number;
+      };
+      setStatsData(response);
+      setStatsDialogOpen(true);
+    } catch (error: any) {
+      toast.error(error.message || "获取小说统计失败");
+    } finally {
+      setIsStatsLoading(false);
+    }
+  };
+
   const handleSort = (column: "createdAt" | "title" | "chapterCount") => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -186,6 +226,13 @@ export default function NovelTable() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleShowNovelStats}
+            disabled={isStatsLoading}
+          >
+            {isStatsLoading ? "统计中..." : "统计小说数量"}
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -375,6 +422,42 @@ export default function NovelTable() {
         novel={deletingNovel}
         onOpenChange={(open) => !open && setDeletingNovel(null)}
       />
+
+      <Dialog open={statsDialogOpen} onOpenChange={setStatsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>小说统计信息</DialogTitle>
+            <DialogDescription>
+              基于当前全部小说数据的章节数量分布。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 pt-2">
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <p className="text-sm text-muted-foreground">全部小说数量</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {statsData?.total ?? 0}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <p className="text-sm text-muted-foreground">
+                未上传章节的小说数量
+              </p>
+              <p className="mt-1 text-2xl font-semibold">
+                {statsData?.chapterCountZero ?? 0}
+              </p>
+            </div>
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <p className="text-sm text-muted-foreground">
+                已上传章节的小说数量
+              </p>
+              <p className="mt-1 text-2xl font-semibold">
+                {statsData?.chapterCountNonZero ?? 0}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
