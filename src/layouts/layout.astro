@@ -2,6 +2,7 @@
 import { ClientRouter } from "astro:transitions";
 import Header from "@/components/header.astro";
 import Footer from "@/components/footer.astro";
+import "nprogress/nprogress.css";
 import "@/styles/global.css";
 
 const {
@@ -125,3 +126,39 @@ const ogImage = new URL("/logo.png", Astro.site);
     </div>
   </body>
 </html>
+
+<script>
+  import nprogress from "nprogress";
+
+  nprogress.configure({
+    parent: "html",
+    trickleSpeed: 200,
+    showSpinner: true,
+  });
+
+  document.addEventListener("astro:before-preparation", () => {
+    console.log("astro:before-preparation");
+    nprogress.start();
+  });
+
+  document.addEventListener("astro:after-preparation", () => {
+    console.log("astro:after-preparation");
+    nprogress.done();
+  });
+</script>
+
+<style is:global>
+  #nprogress .bar {
+    background: oklch(0.6171 0.1375 39.0427) !important;
+    height: 3px !important;
+  }
+  #nprogress .peg {
+    box-shadow:
+      0 0 10px oklch(0.6171 0.1375 39.0427),
+      0 0 5px oklch(0.6171 0.1375 39.0427) !important;
+  }
+  #nprogress .spinner-icon {
+    border-top-color: oklch(0.6171 0.1375 39.0427) !important;
+    border-left-color: oklch(0.6171 0.1375 39.0427) !important;
+  }
+</style>
