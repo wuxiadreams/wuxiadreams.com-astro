@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { desc, asc, count, or, like, eq, and } from "drizzle-orm";
+import { desc, asc, count, or, like, eq, and, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { novel, novelAuthor, novelTag, novelCategory } from "@/db/schema";
 import type { PaginatedResponse } from "../users/index";
@@ -169,6 +169,7 @@ export async function GET({
   const offset = (page - 1) * pageSize;
   const search = url.searchParams.get("search");
   const publishedFilter = url.searchParams.get("published");
+  const chapterUploadFilter = url.searchParams.get("chapterUpload");
 
   const sortBy = url.searchParams.get("sortBy") || "createdAt";
   const sortOrder = url.searchParams.get("sortOrder") || "desc";
@@ -188,7 +189,14 @@ export async function GET({
     publishCondition = eq(novel.published, false);
   }
 
-  const queryFilter = and(searchFilter, publishCondition);
+  let chapterUploadCondition = undefined;
+  if (chapterUploadFilter === "uploaded") {
+    chapterUploadCondition = ne(novel.chapterCount, 0);
+  } else if (chapterUploadFilter === "notUploaded") {
+    chapterUploadCondition = eq(novel.chapterCount, 0);
+  }
+
+  const queryFilter = and(searchFilter, publishCondition, chapterUploadCondition);
 
   let orderByColumn;
   if (sortBy === "title") {

@@ -9,7 +9,7 @@ import {
   Check,
   X,
   Pin,
-  LineChart
+  LineChart,
 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -68,6 +68,9 @@ export default function NovelTable() {
   const [publishedFilter, setPublishedFilter] = useState<
     "all" | "true" | "false"
   >("all");
+  const [chapterUploadFilter, setChapterUploadFilter] = useState<
+    "all" | "uploaded" | "notUploaded"
+  >("all");
   const [isStatsLoading, setIsStatsLoading] = useState(false);
   const [statsDialogOpen, setStatsDialogOpen] = useState(false);
   const [statsData, setStatsData] = useState<{
@@ -89,6 +92,9 @@ export default function NovelTable() {
 
   if (publishedFilter !== "all") {
     params.published = publishedFilter;
+  }
+  if (chapterUploadFilter !== "all") {
+    params.chapterUpload = chapterUploadFilter;
   }
 
   const queryString = new URLSearchParams(params).toString();
@@ -227,6 +233,22 @@ export default function NovelTable() {
               <SelectItem value="all">所有状态</SelectItem>
               <SelectItem value="true">已发布</SelectItem>
               <SelectItem value="false">未发布</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={chapterUploadFilter}
+            onValueChange={(value: "all" | "uploaded" | "notUploaded") => {
+              setChapterUploadFilter(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="章节上传状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部小说</SelectItem>
+              <SelectItem value="uploaded">已上传章节</SelectItem>
+              <SelectItem value="notUploaded">未上传章节</SelectItem>
             </SelectContent>
           </Select>
           <RefreshCcw
