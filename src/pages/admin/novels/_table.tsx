@@ -9,6 +9,7 @@ import {
   Check,
   X,
   Pin,
+  LineChart
 } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -231,6 +232,7 @@ export default function NovelTable() {
             onClick={handleShowNovelStats}
             disabled={isStatsLoading}
           >
+            <LineChart size="16" />
             {isStatsLoading ? "统计中..." : "统计小说数量"}
           </Button>
           <AlertDialog>
