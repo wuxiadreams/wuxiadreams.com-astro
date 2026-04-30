@@ -137,12 +137,10 @@ const ogImage = new URL("/logo.png", Astro.site);
   });
 
   document.addEventListener("astro:before-preparation", () => {
-    console.log("astro:before-preparation");
     nprogress.start();
   });
 
   document.addEventListener("astro:after-preparation", () => {
-    console.log("astro:after-preparation");
     nprogress.done();
   });
 </script>
