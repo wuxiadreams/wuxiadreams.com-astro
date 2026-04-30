@@ -130,19 +130,31 @@ const ogImage = new URL("/logo.png", Astro.site);
 <script>
   import nprogress from "nprogress";
 
+  let progressTimeout = null;
+  const DELAY_MS = 200;
+  const forceDone = () => {
+    nprogress.done();
+    const el = document.getElementById("nprogress");
+    if (el) el.remove();
+  };
+
   nprogress.configure({
     parent: "html",
-    trickleSpeed: 400,
+    trickleSpeed: 200,
     minimum: 0.1,
     showSpinner: true,
   });
 
   document.addEventListener("astro:before-preparation", () => {
-    nprogress.start();
+    clearTimeout(progressTimeout);
+    progressTimeout = setTimeout(() => {
+      nprogress.start();
+    }, DELAY_MS);
   });
 
   document.addEventListener("astro:after-preparation", () => {
-    nprogress.done();
+    clearTimeout(progressTimeout);
+    forceDone();
   });
 </script>
 
