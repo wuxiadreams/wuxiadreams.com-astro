@@ -20,6 +20,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 export default function UserTable() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPage, setJumpPage] = useState("");
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 1000);
@@ -60,6 +61,14 @@ export default function UserTable() {
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["users"] });
+  };
+
+  const handlePageJump = () => {
+    if (!jumpPage) return;
+    const page = Number.parseInt(jumpPage, 10);
+    if (Number.isNaN(page)) return;
+    setCurrentPage(Math.max(1, Math.min(page, totalPages || 1)));
+    setJumpPage("");
   };
 
   return (
@@ -160,10 +169,22 @@ export default function UserTable() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((p) => Math.min(2, p + 1))}
-            disabled={currentPage === 2}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages || totalPages === 0}
           >
             下一页
+          </Button>
+          <Input
+            type="number"
+            min={1}
+            max={Math.max(totalPages, 1)}
+            value={jumpPage}
+            onChange={(e) => setJumpPage(e.target.value)}
+            placeholder="页码"
+            className="h-8 w-20"
+          />
+          <Button variant="outline" size="sm" onClick={handlePageJump}>
+            跳转
           </Button>
         </div>
       </div>

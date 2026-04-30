@@ -47,6 +47,7 @@ import { toast } from "sonner";
 
 export default function CategoryTable() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPage, setJumpPage] = useState("");
   const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery] = useDebounce(searchQuery, 1000);
@@ -131,6 +132,14 @@ export default function CategoryTable() {
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["categories"] });
+  };
+
+  const handlePageJump = () => {
+    if (!jumpPage) return;
+    const page = Number.parseInt(jumpPage, 10);
+    if (Number.isNaN(page)) return;
+    setCurrentPage(Math.max(1, Math.min(page, totalPages || 1)));
+    setJumpPage("");
   };
 
   const handleSort = (column: "createdAt" | "name" | "novelCount") => {
@@ -367,6 +376,18 @@ export default function CategoryTable() {
             disabled={currentPage >= totalPages || totalPages === 0}
           >
             下一页
+          </Button>
+          <Input
+            type="number"
+            min={1}
+            max={Math.max(totalPages, 1)}
+            value={jumpPage}
+            onChange={(e) => setJumpPage(e.target.value)}
+            placeholder="页码"
+            className="h-8 w-20"
+          />
+          <Button variant="outline" size="sm" onClick={handlePageJump}>
+            跳转
           </Button>
         </div>
       </div>
