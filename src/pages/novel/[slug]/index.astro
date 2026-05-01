@@ -113,6 +113,7 @@ Astro.response.headers.set(
   description={novelData.seoDescription ||
     `Read '${novelData.title}' Novel Online for Free. - ${novelData.synopsis}` ||
     ""}
+  image={formatImageUrl(r2Domain, novelData.cover, novelData.updatedAt)}
 >
   <script
     is:inline

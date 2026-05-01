@@ -105,6 +105,7 @@ Astro.response.headers.set(
 <Layout
   title={`${currentChapter.title} - ${novelData.title} | Wuxia Dreams`}
   description={`Read Chapter ${currentChapter.number} of ${novelData.title} online. ${currentChapter.title}`}
+  image={formatImageUrl(r2Domain, novelData.cover, novelData.updatedAt)}
 >
   <style is:global>
     :root {
