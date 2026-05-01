@@ -15,7 +15,7 @@ const Content = createComponent((result, _props, slots) => {
   return renderTemplate`${maybeRenderHead()}${unescapeHTML(html())}`;
 });
 const $$Index = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": "DMCA Notice — Wuxia Dreams" }, { "default": ($$result2) => renderTemplate` ${maybeRenderHead()}<main class="w-full px-4 py-12"> <div class="mx-auto prose dark:prose-invert prose-h1:font-bold prose-h1:text-3xl prose-a:text-primary prose-p:text-justify prose-img:rounded-xl prose-headings:underline"> ${renderComponent($$result2, "Content", Content, {})} </div> </main> ` })}`;
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": "DMCA Notice — Wuxia Dreams" }, { "default": ($$result2) => renderTemplate` ${maybeRenderHead()}<main class="w-full px-4 py-12"> <div class="mx-auto prose dark:prose-invert prose-h1:font-bold prose-h1:text-3xl prose-a:text-primary prose-p:text-justify prose-img:rounded-xl"> ${renderComponent($$result2, "Content", Content, {})} </div> </main> ` })}`;
 }, "/Users/yangfuzhang/Desktop/wuxiadreams/wuxiadreams.com/src/pages/dmca/index.astro", void 0);
 const $$file = "/Users/yangfuzhang/Desktop/wuxiadreams/wuxiadreams.com/src/pages/dmca/index.astro";
 const $$url = "/dmca";
