@@ -180,7 +180,7 @@ Astro.response.headers.set(
           <ol class="grid gap-3" id="list-weekly">
             {
               weeklyPicks.map((item, idx) => (
-                <li>
+                <li class="overflow-hidden">
                   <a
                     href={`/novel/${item.slug}`}
                     class="group flex items-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-3 transition-colors hover:bg-background/60 overflow-hidden block"
@@ -217,7 +217,7 @@ Astro.response.headers.set(
           <ol class="grid gap-3 hidden" id="list-monthly">
             {
               monthlyPicks.map((item, idx) => (
-                <li>
+                <li class="overflow-hidden">
                   <a
                     href={`/novel/${item.slug}`}
                     class="group flex items-start gap-3 rounded-2xl border border-border/60 bg-background/40 p-3 transition-colors hover:bg-background/60 overflow-hidden block"
