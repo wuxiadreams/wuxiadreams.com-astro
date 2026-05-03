@@ -1,0 +1,360 @@
+---
+import { formatDistanceToNow } from "date-fns";
+import Layout from "@/layouts/layout.astro";
+import { actions } from "astro:actions";
+
+const url = new URL(Astro.request.url);
+const currentPage = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+const pageSize = 12;
+
+const { data, error } = await Astro.callAction(actions.post.getPostList, {
+  page: currentPage,
+  limit: pageSize,
+});
+
+if (error) {
+  console.error("Error fetching posts:", error);
+}
+
+const totalPosts = data?.totalPosts ?? 0;
+const posts = data?.posts ?? [];
+const totalPages = Math.max(1, Math.ceil(totalPosts / pageSize));
+
+const getPageUrl = (page: number) => {
+  const newUrl = new URL(url);
+  newUrl.searchParams.set("page", page.toString());
+  return newUrl.pathname + newUrl.search;
+};
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=300, s-maxage=86400, stale-while-revalidate=300",
+);
+---
+
+<Layout title="Articles — Wuxia Dreams">
+  <main class="relative isolate overflow-hidden">
+    <!-- 氛围背景：与站点 primary / chart 呼应的柔光，避免纯色块 -->
+    <div
+      class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_85%_55%_at_50%_-8%,oklch(0.6171_0.1375_39.0427/0.14),transparent_55%),radial-gradient(ellipse_60%_40%_at_100%_20%,oklch(0.6898_0.1581_290.4107/0.08),transparent_50%),radial-gradient(ellipse_50%_35%_at_0%_80%,oklch(0.5583_0.1276_42.9956/0.06),transparent_45%)] dark:bg-[radial-gradient(ellipse_85%_55%_at_50%-8%,oklch(0.6724_0.1308_38.7559/0.18),transparent_55%),radial-gradient(ellipse_60%_40%_at_100%_25%,oklch(0.6898_0.1581_290.4107/0.12),transparent_50%)]"
+      aria-hidden="true"
+    />
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-linear-to-r from-transparent via-border/80 to-transparent"
+      aria-hidden="true"
+    />
+
+    <div class="mx-auto max-w-6xl px-4 py-14 sm:py-16">
+      <header class="relative mb-12 sm:mb-14 lg:mb-16">
+        <div
+          class="absolute -left-1 top-1 hidden h-[calc(100%-0.25rem)] w-1 rounded-full bg-primary/70 sm:block"
+          aria-hidden="true"
+        >
+        </div>
+        <p
+          class="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary sm:pl-5"
+        >
+          Editorial
+        </p>
+        <h1
+          class="mt-3 font-serif text-4xl font-semibold tracking-tight text-foreground sm:pl-5 sm:text-5xl sm:leading-[1.08]"
+        >
+          Articles
+        </h1>
+        <p
+          class="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:pl-5 sm:text-[1.05rem]"
+        >
+          News, essays, and notes from the team—behind the scenes of the library
+          and what we are reading next.
+        </p>
+        {
+          totalPosts > 0 && (
+            <p class="mt-5 text-sm text-muted-foreground sm:pl-5">
+              <span class="font-medium text-foreground tabular-nums">
+                {totalPosts}
+              </span>{" "}
+              {totalPosts === 1 ? "story" : "stories"} published
+            </p>
+          )
+        }
+      </header>
+
+      {
+        posts.length > 0 ? (
+          <div class="posts-animate grid gap-6 sm:gap-7 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+            {posts.map((item, index) => {
+              const isLead = currentPage === 1 && index === 0;
+              return (
+                <a
+                  href={`/post/${item.slug}`}
+                  class:list={[
+                    "group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-sm ring-1 ring-transparent backdrop-blur-[2px] transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:ring-primary/10",
+                    isLead &&
+                      "md:col-span-2 lg:col-span-2 lg:flex-row lg:items-stretch",
+                  ]}
+                  style={`animation-delay: ${Math.min(index, 10) * 45}ms`}
+                >
+                  <div
+                    class:list={[
+                      "relative overflow-hidden bg-muted",
+                      isLead
+                        ? "aspect-[16/10] w-full shrink-0 lg:aspect-auto lg:w-[52%] lg:min-h-[min(22rem,52vw)]"
+                        : "aspect-[5/4] w-full sm:aspect-[16/10]",
+                    ]}
+                  >
+                    <div
+                      class="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-background/85 via-background/10 to-transparent opacity-90 transition duration-300 group-hover:opacity-100 lg:opacity-80 lg:group-hover:opacity-95"
+                      aria-hidden="true"
+                    />
+                    <img
+                      src={item.cover}
+                      alt={item.title}
+                      width={960}
+                      height={600}
+                      loading={index < 2 ? "eager" : "lazy"}
+                      decoding="async"
+                      class="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
+                    />
+                    <span
+                      class="absolute bottom-4 left-4 z-20 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-foreground shadow-sm backdrop-blur-md dark:bg-background/70"
+                    >
+                      Read
+                      <svg
+                        class="h-3 w-3 transition-transform duration-300 group-hover:translate-x-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div
+                    class:list={[
+                      "flex min-w-0 flex-1 flex-col justify-end p-5 sm:p-6",
+                      isLead && "lg:justify-center lg:py-8 lg:pl-2 lg:pr-8",
+                    ]}
+                  >
+                    <span class="text-[11px] font-medium tabular-nums text-muted-foreground">
+                      {String(index + 1 + (currentPage - 1) * pageSize).padStart(2, "0")}
+                    </span>
+                    <h2
+                      class:list={[
+                        "mt-2 font-semibold leading-snug tracking-tight text-foreground transition-colors duration-200 group-hover:text-primary",
+                        isLead
+                          ? "text-xl sm:text-2xl lg:text-[1.65rem] lg:leading-snug"
+                          : "text-lg sm:text-xl",
+                      ]}
+                    >
+                      {item.title}
+                    </h2>
+                    {item.abstract ? (
+                      <p
+                        class:list={[
+                          "mt-2 text-muted-foreground",
+                          isLead
+                            ? "line-clamp-3 text-sm leading-relaxed sm:text-[0.95rem] lg:line-clamp-4"
+                            : "line-clamp-2 text-sm leading-relaxed",
+                        ]}
+                      >
+                        {item.abstract}
+                      </p>
+                    ) : null}
+                    <time
+                      class="mt-4 text-xs font-medium text-muted-foreground"
+                      datetime={item.updatedAt.toISOString()}
+                    >
+                      {formatDistanceToNow(item.updatedAt, { addSuffix: true })}
+                    </time>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="flex flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-border/70 bg-card/40 px-6 py-20 text-center shadow-inner sm:py-24">
+            <div class="rounded-2xl border border-border/60 bg-muted/40 p-5 shadow-sm">
+              <svg
+                class="mx-auto h-9 w-9 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <h2 class="mt-6 text-xl font-semibold tracking-tight">
+              No articles yet
+            </h2>
+            <p class="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+              When the team publishes posts, they will appear here in this
+              reading list.
+            </p>
+          </div>
+        )
+      }
+
+      {
+        totalPages > 1 && (
+          <div class="mt-14 flex flex-col items-center gap-4 sm:mt-16">
+            <div class="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border/60 bg-muted/25 px-3 py-3 shadow-sm backdrop-blur-sm sm:px-4">
+              <a
+                href={getPageUrl(1)}
+                aria-label="First page"
+                class:list={[
+                  "hidden h-10 w-10 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition hover:border-border/80 hover:bg-background hover:text-foreground sm:inline-flex",
+                  currentPage === 1 && "pointer-events-none opacity-40",
+                ]}
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                  />
+                </svg>
+              </a>
+              <a
+                href={getPageUrl(Math.max(1, currentPage - 1))}
+                aria-label="Previous page"
+                class:list={[
+                  "inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition hover:border-border/80 hover:bg-background hover:text-foreground",
+                  currentPage === 1 && "pointer-events-none opacity-40",
+                ]}
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </a>
+              <div class="min-w-[8.5rem] px-2 text-center text-sm text-muted-foreground">
+                Page{" "}
+                <span class="font-semibold text-foreground tabular-nums">
+                  {currentPage}
+                </span>{" "}
+                / {totalPages}
+              </div>
+              <a
+                href={getPageUrl(Math.min(totalPages, currentPage + 1))}
+                aria-label="Next page"
+                class:list={[
+                  "inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition hover:border-border/80 hover:bg-background hover:text-foreground",
+                  currentPage === totalPages && "pointer-events-none opacity-40",
+                ]}
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </a>
+              <a
+                href={getPageUrl(totalPages)}
+                aria-label="Last page"
+                class:list={[
+                  "hidden h-10 w-10 items-center justify-center rounded-xl border border-transparent text-muted-foreground transition hover:border-border/80 hover:bg-background hover:text-foreground sm:inline-flex",
+                  currentPage === totalPages && "pointer-events-none opacity-40",
+                ]}
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                  />
+                </svg>
+              </a>
+            </div>
+            {posts.length > 0 && (
+              <p class="text-center text-xs text-muted-foreground">
+                Showing{" "}
+                <span class="tabular-nums text-foreground">
+                  {Math.min((currentPage - 1) * pageSize + 1, totalPosts)}
+                </span>
+                –
+                <span class="tabular-nums text-foreground">
+                  {Math.min(currentPage * pageSize, totalPosts)}
+                </span>{" "}
+                of{" "}
+                <span class="tabular-nums text-foreground">{totalPosts}</span>
+              </p>
+            )}
+          </div>
+        )
+      }
+
+      {
+        totalPages === 1 && posts.length > 0 && (
+          <p class="mt-10 text-center text-xs text-muted-foreground">
+            Showing all{" "}
+            <span class="font-medium text-foreground">{totalPosts}</span>{" "}
+            {totalPosts === 1 ? "article" : "articles"}
+          </p>
+        )
+      }
+    </div>
+  </main>
+
+  <style>
+    @keyframes posts-fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .posts-animate > * {
+      opacity: 0;
+      animation: posts-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+  </style>
+</Layout>

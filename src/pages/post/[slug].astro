@@ -1,0 +1,103 @@
+---
+import { formatDistanceToNow } from "date-fns";
+import { marked } from "marked";
+import Layout from "@/layouts/layout.astro";
+import { actions } from "astro:actions";
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect("/posts");
+}
+
+const { data, error } = await Astro.callAction(actions.post.getPostBySlug, {
+  slug,
+});
+
+if (error || !data?.post) {
+  return Astro.redirect("/posts");
+}
+
+const post = data.post;
+const layoutTitle = post.seoTitle?.trim() || `${post.title} — Wuxia Dreams`;
+const layoutDescription =
+  post.seoDescription?.trim() || post.abstract?.trim() || post.title;
+
+const contentHtml = marked(post.content || "", { async: false }) as string;
+
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=300, s-maxage=86400, stale-while-revalidate=300",
+);
+---
+
+<Layout title={layoutTitle} description={layoutDescription} image={post.cover}>
+  <article class="mx-auto max-w-3xl px-4 py-10 sm:py-14">
+    <header class="border-b border-border/60 pb-8">
+      <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Article
+      </p>
+      <h1
+        class="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
+      >
+        {post.title}
+      </h1>
+      {
+        post.abstract ? (
+          <p class="mt-4 text-lg leading-relaxed text-muted-foreground">
+            {post.abstract}
+          </p>
+        ) : null
+      }
+      <time
+        class="mt-6 block text-sm text-muted-foreground"
+        datetime={post.updatedAt.toISOString()}
+      >
+        Updated{" "}
+        {formatDistanceToNow(post.updatedAt, { addSuffix: true })}
+      </time>
+    </header>
+
+    <div
+      class="relative mt-8 overflow-hidden rounded-2xl border border-border/60 bg-muted/20"
+    >
+      <img
+        src={post.cover}
+        alt={post.title}
+        width={1200}
+        height={630}
+        loading="eager"
+        decoding="async"
+        class="aspect-[1200/630] w-full object-cover"
+      />
+    </div>
+
+    <div
+      class="post-body prose prose-neutral mt-10 max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-a:text-primary prose-img:rounded-xl"
+      set:html={contentHtml}
+    />
+
+    <footer class="mt-14 border-t border-border/60 pt-8">
+      <a
+        href="/posts"
+        class="inline-flex items-center gap-2 text-sm font-medium text-primary transition hover:text-primary/90"
+      >
+        <svg
+          class="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        Back to articles
+      </a>
+    </footer>
+  </article>
+</Layout>

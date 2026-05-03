@@ -12,6 +12,7 @@ const navItems = [
       { href: "/novels", label: "All Novels" },
       { href: "/rankings", label: "Rankings" },
       { href: "/tags", label: "Tags" },
+      { href: "/posts", label: "Articles" },
     ],
   },
   { href: "/genres", label: "Genres" },
@@ -23,6 +24,13 @@ const isActive = (href: string, exact: boolean = false) => {
   if (href === "/") return currentPath === "/";
   if (exact) return currentPath === href;
   return currentPath.startsWith(href);
+};
+
+const isSubActive = (href: string) => {
+  if (href === "/posts") {
+    return currentPath === "/posts" || currentPath.startsWith("/post/");
+  }
+  return isActive(href, true);
 };
 ---
 
@@ -65,7 +73,8 @@ const isActive = (href: string, exact: boolean = false) => {
                   class:list={[
                     "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition",
                     isActive(item.href) ||
-                    item.subItems.some((sub) => isActive(sub.href))
+                    item.subItems.some((sub) => isActive(sub.href)) ||
+                    (item.href === "/novels" && currentPath.startsWith("/post/"))
                       ? "bg-muted text-foreground"
                       : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                   ]}
@@ -92,7 +101,7 @@ const isActive = (href: string, exact: boolean = false) => {
                         href={sub.href}
                         class:list={[
                           "block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                          isActive(sub.href, true)
+                          isSubActive(sub.href)
                             ? "bg-primary text-primary-foreground"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         ]}
@@ -122,6 +131,10 @@ const isActive = (href: string, exact: boolean = false) => {
       </nav>
     </div>
 
-    <HeaderDynamic server:defer navItems={navItems} />
+    <HeaderDynamic
+      server:defer
+      navItems={navItems}
+      currentPath={currentPath}
+    />
   </div>
 </header>

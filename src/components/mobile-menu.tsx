@@ -145,19 +145,26 @@ export function MobileMenu({
                       {item.label}
                     </div>
                     <div className="flex flex-col gap-0.5 border-l-2 border-border/40 ml-3 pl-1">
-                      {item.subItems.map((sub) => (
+                      {item.subItems.map((sub) => {
+                        const subActive =
+                          sub.href === "/posts"
+                            ? currentPath === "/posts" ||
+                              currentPath.startsWith("/post/")
+                            : isActive(sub.href, true);
+                        return (
                         <a
                           key={sub.label}
                           href={sub.href}
                           className={`block rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
-                            isActive(sub.href, true)
+                            subActive
                               ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
                           }`}
                         >
                           {sub.label}
                         </a>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (

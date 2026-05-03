@@ -360,7 +360,7 @@ export const chapterManagement = {
       title: z.string(),
       wordCount: z.number().default(0),
       fileKey: z.string(),
-      published: z.boolean().default(false),
+      published: z.boolean().default(true),
       publishedAt: z.union([z.date(), z.string(), z.number()]).optional(),
     }),
     handler: async (input, { locals }) => {

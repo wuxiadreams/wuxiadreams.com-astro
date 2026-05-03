@@ -165,11 +165,25 @@ export default function PostTable() {
             {posts.length > 0 ? (
               posts.map((post) => (
                 <TableRow key={post.id}>
-                  <TableCell
-                    className="font-medium max-w-[240px] whitespace-normal break-words"
-                    title={post.title}
-                  >
-                    {post.title}
+                  <TableCell className="max-w-[240px] whitespace-normal break-words">
+                    {post.published ? (
+                      <a
+                        href={`/post/${post.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-foreground hover:text-primary hover:underline underline-offset-2"
+                        title={`${post.title}（新标签页打开前台详情）`}
+                      >
+                        {post.title}
+                      </a>
+                    ) : (
+                      <span
+                        className="font-medium text-muted-foreground"
+                        title="未发布，前台暂无详情页"
+                      >
+                        {post.title}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell
                     className="text-muted-foreground max-w-[240px] whitespace-normal break-words"

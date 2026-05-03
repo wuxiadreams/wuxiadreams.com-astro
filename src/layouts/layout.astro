@@ -121,7 +121,7 @@ const ogImage = new URL(image, Astro.site);
       class="min-h-dvh bg-background text-foreground"
       transition:animate="none"
     >
-      <Header />
+      <Header currentPath={Astro.url.pathname} />
       <slot />
       <Footer />
     </div>

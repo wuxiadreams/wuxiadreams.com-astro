@@ -11,6 +11,7 @@ import { chapterManagement } from "./chapter-management";
 import { tagActions } from "./tag";
 import { genreActions } from "./genre";
 import { authorActions } from "./author";
+import { postActions } from "./post";
 
 export const server = {
   chapter,
@@ -20,6 +21,7 @@ export const server = {
   tag: tagActions,
   genre: genreActions,
   author: authorActions,
+  post: postActions,
   getHomeData: defineAction({
     accept: "json",
     handler: async () => {

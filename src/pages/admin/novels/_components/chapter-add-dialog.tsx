@@ -35,7 +35,7 @@ import { Switch } from "@/components/ui/switch";
 const chapterFormSchema = z.object({
   number: z.number().min(1, "请输入章节序号"),
   title: z.string().min(1, "请输入章节标题"),
-  published: z.boolean(),
+  published: z.boolean().default(true),
 });
 
 export function ChapterAddDialog({
@@ -55,7 +55,7 @@ export function ChapterAddDialog({
   const defaultValues = {
     number: chapterCount + 1,
     title: "",
-    published: false,
+    published: true,
   };
 
   const form = useForm<z.infer<typeof chapterFormSchema>>({
@@ -148,7 +148,7 @@ export function ChapterAddDialog({
         form.reset({
           number: values.number + 1,
           title: "",
-          published: false,
+          published: true,
         });
         setFile(null);
 
