@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BookmarkPlus, BookmarkCheck } from "lucide-react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogTitle, DialogContent } from "@/components/ui/dialog";
 import { AuthForm } from "@/components/auth-form";
 
 export function AddToLibraryButton({ novelId }: { novelId: string }) {
@@ -97,6 +97,7 @@ export function AddToLibraryButton({ novelId }: { novelId: string }) {
       </button>
 
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogTitle className="sr-only">Sign in</DialogTitle>
         <DialogContent className="sm:max-w-[400px] border-border/40 bg-card/95 backdrop-blur-xl shadow-2xl p-6">
           <AuthForm
             onSuccess={() => {

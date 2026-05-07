@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AuthForm } from "./auth-form";
 
 export function AuthDialog({
@@ -19,6 +19,7 @@ export function AuthDialog({
         <button className={triggerClassName}>{triggerText}</button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px] border-border/40 bg-card/95 backdrop-blur-xl shadow-2xl p-6">
+        <DialogTitle className="sr-only">Sign in</DialogTitle>
         <AuthForm isAdmin={isAdmin} onSuccess={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>
