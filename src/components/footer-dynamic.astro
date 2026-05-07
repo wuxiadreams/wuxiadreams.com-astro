@@ -3,17 +3,10 @@ import { AuthDialog } from "@/components/auth-dialog";
 
 const user = Astro.locals.user;
 
-if (user) {
-  Astro.response.headers.set(
-    "Cache-Control",
-    "private, no-cache, no-store, must-revalidate",
-  );
-} else {
-  Astro.response.headers.set(
-    "Cache-Control",
-    "public, max-age=60, s-maxage=31536000, stale-while-revalidate=60",
-  );
-}
+Astro.response.headers.set(
+  "Cache-Control",
+  "private, no-cache, no-store, must-revalidate",
+);
 ---
 
 {
