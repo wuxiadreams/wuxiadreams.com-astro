@@ -54,7 +54,6 @@ export function AuthForm({
           setErrorMsg(error.message || "Invalid email or password.");
         } else {
           if (onSuccess) onSuccess();
-          window.location.href = targetURL;
         }
       } else {
         // Handle Signup
@@ -69,7 +68,6 @@ export function AuthForm({
           setErrorMsg(error.message || "Failed to create account.");
         } else {
           if (onSuccess) onSuccess();
-          window.location.href = targetURL;
         }
       }
     } catch (err) {
