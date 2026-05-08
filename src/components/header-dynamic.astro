@@ -4,7 +4,6 @@ import { AuthDialog } from "./auth-dialog";
 import { UserMenu } from "./user-menu";
 import { MobileMenu } from "./mobile-menu";
 
-const { currentPath = "/" } = Astro.props;
 const user = Astro.locals.user;
 const adminEmails = (env.ADMIN_EMAILS ?? "").split(",");
 const isAdmin = user ? adminEmails.includes(user.email || "") : false;
@@ -91,11 +90,5 @@ Astro.response.headers.set(
     )
   }
 
-  <MobileMenu
-    client:only
-    navItems={navItems}
-    currentPath={currentPath}
-    user={user}
-    isAdmin={isAdmin}
-  />
+  <MobileMenu client:only navItems={navItems} user={user} isAdmin={isAdmin} />
 </div>
