@@ -8,7 +8,6 @@ import { ChapterSettings } from "@/components/chapter-settings";
 import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
 import Banner300X250 from "@/components/ads/banner-300x250.astro";
 import Banner320X50 from "@/components/ads/banner-320x50.astro";
-import Banner728X90 from "@/components/ads/banner-728x90.astro";
 
 const { slug, number } = Astro.params;
 const chapterNumber = Number(number);
@@ -332,7 +331,6 @@ Astro.response.headers.set(
     <article
       class="chapter-content-container prose prose-neutral dark:prose-invert max-w-none text-foreground break-words"
     >
-      <Banner728X90 class="hidden md:block" />
       <Banner320X50 class="block md:hidden" />
       {contentParagraphs.map((p) => <p class="whitespace-pre-wrap">{p}</p>)}
       <Banner300X250 />
