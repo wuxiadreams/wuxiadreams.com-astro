@@ -3,13 +3,14 @@ import { cn } from "@/lib/utils";
 
 const { className } = Astro.props;
 const shouldLoadAds = import.meta.env.PROD;
+const { mediaQuery } = Astro.props;
 ---
 
 {
   shouldLoadAds && (
     <>
       <div class={cn("w-full flex items-center justify-center", className)}>
-        <div data-ad-slot-300x250></div>
+        <div data-ad-slot-300x250 data-ad-media-query={mediaQuery}></div>
       </div>
 
       <script is:inline data-astro-rerun>
@@ -41,6 +42,12 @@ const shouldLoadAds = import.meta.env.PROD;
           const slots = document.querySelectorAll("[data-ad-slot-300x250]");
 
           slots.forEach((slot) => {
+            const query = slot.getAttribute("data-ad-media-query");
+            if (query && !window.matchMedia(query).matches) {
+              slot.innerHTML = "";
+              return;
+            }
+
             queueAdLoad(
               slot,
               {
