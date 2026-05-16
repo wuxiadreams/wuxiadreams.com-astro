@@ -4,6 +4,7 @@ import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
 import { actions } from "astro:actions";
 import { AddToLibraryButton } from "@/components/add-to-library-button";
+import Banner320X50 from "@/components/ads/banner-320x50.astro";
 import { formatImageUrl } from "@/lib/file";
 
 const { slug } = Astro.params;
@@ -701,6 +702,9 @@ Astro.response.headers.set(
             </div>
           )
         }
+
+        <!-- adsterra 广告 -->
+        <Banner320X50 />
       </aside>
     </div>
   </main>

@@ -1,0 +1,55 @@
+---
+import { cn } from "@/lib/utils";
+
+const { className } = Astro.props;
+---
+
+<div class={cn("w-full flex items-center justify-center", className)}>
+  <div data-ad-slot-728x90></div>
+</div>
+
+<script is:inline data-astro-rerun>
+  function queueAdLoad(slot, atOptions, src) {
+    const w = window;
+    if (!w.__adInvokeQueue) {
+      w.__adInvokeQueue = Promise.resolve();
+    }
+
+    w.__adInvokeQueue = w.__adInvokeQueue.then(
+      () =>
+        new Promise((resolve) => {
+          slot.innerHTML = "";
+          w.atOptions = atOptions;
+
+          const adScript = document.createElement("script");
+          adScript.type = "text/javascript";
+          adScript.async = true;
+          adScript.src = src;
+          adScript.onload = () => resolve();
+          adScript.onerror = () => resolve();
+
+          slot.appendChild(adScript);
+        }),
+    );
+  }
+
+  function loadBanner728x90() {
+    const slots = document.querySelectorAll("[data-ad-slot-728x90]");
+
+    slots.forEach((slot) => {
+      queueAdLoad(
+        slot,
+        {
+          key: "f6d66a3ff9df3b519686e36387c7d24f",
+          format: "iframe",
+          height: 90,
+          width: 728,
+          params: {},
+        },
+        "https://www.highperformanceformat.com/f6d66a3ff9df3b519686e36387c7d24f/invoke.js",
+      );
+    });
+  }
+
+  loadBanner728x90();
+</script>

@@ -6,6 +6,8 @@ import { formatDate } from "@/lib/utils";
 import { formatImageUrl } from "@/lib/file";
 import { ChapterSettings } from "@/components/chapter-settings";
 import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
+import Banner300X250 from "@/components/ads/banner-300x250.astro";
+import Banner728X90 from "@/components/ads/banner-728x90.astro";
 
 const { slug, number } = Astro.params;
 const chapterNumber = Number(number);
@@ -329,7 +331,9 @@ Astro.response.headers.set(
     <article
       class="chapter-content-container prose prose-neutral dark:prose-invert max-w-none text-foreground break-words"
     >
+      <Banner728X90 />
       {contentParagraphs.map((p) => <p class="whitespace-pre-wrap">{p}</p>)}
+      <Banner300X250 />
     </article>
 
     {/* 底部导航控制 */}
