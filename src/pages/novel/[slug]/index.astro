@@ -4,6 +4,7 @@ import Layout from "@/layouts/layout.astro";
 import { Image } from "astro:assets";
 import { actions } from "astro:actions";
 import { AddToLibraryButton } from "@/components/add-to-library-button";
+import { ContinueReadingButton } from "@/components/continue-reading-button";
 import Banner320X50 from "@/components/ads/banner-320x50.astro";
 import { formatImageUrl } from "@/lib/file";
 
@@ -292,23 +293,12 @@ Astro.response.headers.set(
 
             {/* 操作按钮区 */}
             <div class="mt-6 flex flex-wrap gap-3">
-              {
-                firstChapterData ? (
-                  <a
-                    href={`/novel/${novelData.slug}/chapter-${firstChapterData.number}`}
-                    class="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-                  >
-                    Start Reading
-                  </a>
-                ) : (
-                  <button
-                    disabled
-                    class="inline-flex h-11 items-center justify-center rounded-xl bg-muted px-8 text-sm font-semibold text-muted-foreground cursor-not-allowed"
-                  >
-                    No Chapters
-                  </button>
-                )
-              }
+              <ContinueReadingButton
+                client:load
+                novelId={novelData.id}
+                novelSlug={novelData.slug}
+                firstChapterNumber={firstChapterData?.number ?? null}
+              />
               <AddToLibraryButton client:load novelId={novelData.id} />
             </div>
           </div>

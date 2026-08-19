@@ -371,6 +371,35 @@ export const userLibrary = sqliteTable(
   ],
 );
 
+/** One row per user+novel: last chapter read (continue / history). */
+export const userReadingProgress = sqliteTable(
+  "user_reading_progress",
+  {
+    userId: t
+      .text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    novelId: t
+      .text("novel_id")
+      .notNull()
+      .references(() => novel.id, { onDelete: "cascade" }),
+    chapterId: t
+      .text("chapter_id")
+      .references(() => chapter.id, { onDelete: "set null" }),
+    chapterNumber: t.real("chapter_number").notNull(),
+    chapterTitle: t.text("chapter_title").notNull(),
+    updatedAt: t.integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.novelId] }),
+    index("user_reading_progress_user_updated_idx").on(
+      table.userId,
+      table.updatedAt,
+    ),
+    index("user_reading_progress_novel_id_idx").on(table.novelId),
+  ],
+);
+
 export const novelRelations = relations(novel, ({ many }) => ({
   chapters: many(chapter),
   novelAuthors: many(novelAuthor),

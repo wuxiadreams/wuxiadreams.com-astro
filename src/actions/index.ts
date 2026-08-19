@@ -25,7 +25,6 @@ export const server = {
   getHomeData: defineAction({
     accept: "json",
     handler: async () => {
-      console.log("=======测试: getHomeData Invoked=======");
       const [
         weeklyPicks,
         monthlyPicks,

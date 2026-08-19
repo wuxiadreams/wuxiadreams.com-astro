@@ -2,6 +2,7 @@
 import { ClientRouter } from "astro:transitions";
 import Header from "@/components/header.astro";
 import Footer from "@/components/footer.astro";
+import { AppToaster } from "@/components/app-toaster";
 import "nprogress/nprogress.css";
 import "@/styles/global.css";
 
@@ -125,8 +126,10 @@ const ogImage = new URL(image, Astro.site);
       <slot />
       <Footer />
     </div>
+    <AppToaster client:load />
   </body>
 </html>
+
 
 <script>
   import nprogress from "nprogress";

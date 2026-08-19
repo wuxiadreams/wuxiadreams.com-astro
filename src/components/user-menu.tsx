@@ -1,4 +1,4 @@
-import { LogOut, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, BookMarked } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import {
   DropdownMenu,
@@ -66,20 +66,27 @@ export function UserMenu({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <a
+            href="/library"
+            className="cursor-pointer flex items-center w-full"
+          >
+            <BookMarked className="mr-2 h-4 w-4" />
+            <span>Library</span>
+          </a>
+        </DropdownMenuItem>
         {isAdmin && (
-          <>
-            <DropdownMenuItem asChild>
-              <a
-                href="/admin/users"
-                className="cursor-pointer flex items-center w-full"
-              >
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
+          <DropdownMenuItem asChild>
+            <a
+              href="/admin/users"
+              className="cursor-pointer flex items-center w-full"
+            >
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </a>
+          </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}
           className="text-destructive cursor-pointer focus:text-destructive focus:bg-destructive/10"

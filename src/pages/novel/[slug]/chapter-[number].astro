@@ -6,6 +6,8 @@ import { formatDate } from "@/lib/utils";
 import { formatImageUrl } from "@/lib/file";
 import { ChapterSettings } from "@/components/chapter-settings";
 import { ChapterIndexDrawer } from "@/components/chapter-index-drawer";
+import { ChapterProgressTracker } from "@/components/chapter-progress-tracker";
+import { SyncProgressPrompt } from "@/components/sync-progress-prompt";
 import Banner300X250 from "@/components/ads/banner-300x250.astro";
 import Banner728X90 from "@/components/ads/banner-728x90.astro";
 import Banner320X50 from "@/components/ads/banner-320x50.astro";
@@ -446,6 +448,22 @@ Astro.response.headers.set(
         )
       }
     </div>
+
+    <ChapterProgressTracker
+      client:load
+      novelId={novelData.id}
+      novelSlug={novelData.slug}
+      novelTitle={novelData.title}
+      cover={
+        novelData.cover
+          ? formatImageUrl(r2Domain, novelData.cover, novelData.updatedAt)
+          : null
+      }
+      chapterId={currentChapter.id}
+      chapterNumber={currentChapter.number}
+      chapterTitle={currentChapter.title}
+    />
+    <SyncProgressPrompt client:load />
 
     {/* 全局悬浮操作栏 */}
     <div

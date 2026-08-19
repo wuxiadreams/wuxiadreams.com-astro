@@ -100,6 +100,7 @@ export function AddToLibraryButton({ novelId }: { novelId: string }) {
         <DialogTitle className="sr-only">Sign in</DialogTitle>
         <DialogContent className="sm:max-w-[400px] border-border/40 bg-card/95 backdrop-blur-xl shadow-2xl p-6">
           <AuthForm
+            subtitle="Keep reading where you left off on any device"
             onSuccess={() => {
               setShowAuthDialog(false);
               // Re-check status after successful login

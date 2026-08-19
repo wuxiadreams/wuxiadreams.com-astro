@@ -1,17 +1,22 @@
 import * as React from "react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { signIn, signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { syncReadingProgressOnLogin, getLocalProgressList } from "@/lib/reading-progress";
 
 export function AuthForm({
   isAdmin = false,
   adminEmails = "",
   onSuccess,
+  subtitle,
 }: {
   isAdmin?: boolean;
   adminEmails?: string;
   onSuccess?: () => void;
+  /** Optional benefit-focused subtitle (e.g. progress sync). */
+  subtitle?: string;
 }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -27,6 +32,17 @@ export function AuthForm({
       return adminList.includes(checkEmail);
     }
     return false;
+  };
+
+  const afterAuthSuccess = async () => {
+    const localCount = getLocalProgressList(1).length;
+    if (localCount > 0) {
+      const synced = await syncReadingProgressOnLogin();
+      if (synced) {
+        toast.success("Progress synced");
+      }
+    }
+    onSuccess?.();
   };
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -53,7 +69,7 @@ export function AuthForm({
         if (error) {
           setErrorMsg(error.message || "Invalid email or password.");
         } else {
-          if (onSuccess) onSuccess();
+          await afterAuthSuccess();
         }
       } else {
         // Handle Signup
@@ -67,7 +83,7 @@ export function AuthForm({
         if (error) {
           setErrorMsg(error.message || "Failed to create account.");
         } else {
-          if (onSuccess) onSuccess();
+          await afterAuthSuccess();
         }
       }
     } catch (err) {
@@ -119,9 +135,11 @@ export function AuthForm({
           {isLogin ? "Welcome back" : "Create an account"}
         </h2>
         <p className="text-muted-foreground mt-1.5 text-sm">
-          {isLogin
-            ? "Enter your details to sign in to your account"
-            : "Enter your details below to create your account"}
+          {subtitle
+            ? subtitle
+            : isLogin
+              ? "Enter your details to sign in to your account"
+              : "Enter your details below to create your account"}
         </p>
       </div>
 

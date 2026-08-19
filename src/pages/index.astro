@@ -5,6 +5,7 @@ import { actions } from "astro:actions";
 import { Image } from "astro:assets";
 import { formatImageUrl } from "@/lib/file";
 import Layout from "@/layouts/layout.astro";
+import { ContinueReadingStrip } from "@/components/continue-reading-strip";
 
 const res = await Astro.callAction(actions.getHomeData, {});
 const data = res.data;
@@ -60,6 +61,7 @@ Astro.response.headers.set(
 ---
 
 <Layout title="Wuxia Dreams — Discover and Read Free Online Novels">
+  <ContinueReadingStrip client:only="react" />
   <main class="relative">
     <section class="relative overflow-hidden border-b border-border/60">
       <div class="pointer-events-none absolute inset-0 -z-10">
