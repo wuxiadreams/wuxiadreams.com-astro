@@ -6,7 +6,7 @@ const shouldLoadAds = import.meta.env.PROD;
 ---
 
 {
-  !shouldLoadAds && (
+  shouldLoadAds && (
     <>
       <div class={cn("w-full not-prose", classProp, className)}>
         <div
