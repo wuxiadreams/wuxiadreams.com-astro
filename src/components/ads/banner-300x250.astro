@@ -8,8 +8,12 @@ const shouldLoadAds = import.meta.env.PROD;
 {
   shouldLoadAds && (
     <>
-      <div class={cn("w-full flex items-center justify-center", classProp, className)}>
-        <div data-ad-slot-300x250 data-ad-media-query={mediaQuery}></div>
+      <div class={cn("w-full not-prose", classProp, className)}>
+        <div
+          class="flex w-full justify-center"
+          data-ad-slot-300x250
+          data-ad-media-query={mediaQuery}
+        />
       </div>
 
       <script is:inline data-astro-rerun>
