@@ -6,6 +6,7 @@ import { actions } from "astro:actions";
 import { AddToLibraryButton } from "@/components/add-to-library-button";
 import { ContinueReadingButton } from "@/components/continue-reading-button";
 import Banner320X50 from "@/components/ads/banner-320x50.astro";
+import Banner728X90 from "@/components/ads/banner-728x90.astro";
 import { formatImageUrl } from "@/lib/file";
 
 const { slug } = Astro.params;
@@ -306,6 +307,10 @@ Astro.response.headers.set(
 
         {/* 简介区 */}
         <section class="scroll-mt-24">
+          <!-- adsterra 广告 -->
+          <Banner320X50 class="block md:hidden mb-4" mediaQuery="(max-width: 767px)" />
+          <Banner728X90 class="hidden md:block mb-4" mediaQuery="(min-width: 768px)" />
+
           <h3 class="mb-4 text-xl font-bold text-foreground">Synopsis</h3>
           <div
             class="prose prose-sm sm:prose-base prose-neutral dark:prose-invert max-w-none text-muted-foreground"
@@ -510,6 +515,9 @@ Astro.response.headers.set(
 
       {/* 右侧边栏区 */}
       <aside class="flex flex-col gap-8 w-full sm:w-64 lg:w-80 shrink-0">
+        <!-- adsterra 广告 -->
+        <Banner320X50 />
+        
         {/* 分类 & 标签 */}
         <div class="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
           <h3 class="mb-4 font-semibold text-foreground">Information</h3>
@@ -556,6 +564,7 @@ Astro.response.headers.set(
             }
           </div>
         </div>
+
         {/* 外部链接 */}
         {
           (novelData.officialLink ||
@@ -692,9 +701,6 @@ Astro.response.headers.set(
             </div>
           )
         }
-
-        <!-- adsterra 广告 -->
-        <Banner320X50 />
       </aside>
     </div>
   </main>

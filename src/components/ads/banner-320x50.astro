@@ -1,15 +1,14 @@
 ---
 import { cn } from "@/lib/utils";
 
-const { className } = Astro.props;
+const { class: classProp, className, mediaQuery } = Astro.props;
 const shouldLoadAds = import.meta.env.PROD;
-const { mediaQuery } = Astro.props;
 ---
 
 {
-  shouldLoadAds && (
+  !shouldLoadAds && (
     <>
-      <div class={cn("w-full flex items-center justify-center", className)}>
+      <div class={cn("w-full flex items-center justify-center", classProp, className)}>
         <div data-ad-slot-320x50 data-ad-media-query={mediaQuery}></div>
       </div>
 
