@@ -1,19 +1,30 @@
-<!-- Google tag (gtag.js) -->
-<script
-  is:inline
-  async
-  src="https://www.googletagmanager.com/gtag/js?id=G-W6L750JQZ7"></script>
-<script is:inline>
-  window.dataLayer = window.dataLayer || [];
-  function gtag() {
-    dataLayer.push(arguments);
-  }
-  gtag("js", new Date());
-  gtag("config", "G-W6L750JQZ7");
+---
+const shouldLoadAnalytics = import.meta.env.PROD;
+---
 
-  document.addEventListener("astro:page-load", () => {
-    gtag("config", "G-W6L750JQZ7", {
-      page_path: window.location.pathname + window.location.search,
-    });
-  });
-</script>
+{
+  shouldLoadAnalytics && (
+    <>
+      <!-- Google tag (gtag.js) -->
+      <script
+        is:inline
+        async
+        src="https://www.googletagmanager.com/gtag/js?id=G-W6L750JQZ7"
+      />
+      <script is:inline>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", "G-W6L750JQZ7");
+
+        document.addEventListener("astro:page-load", () => {
+          gtag("config", "G-W6L750JQZ7", {
+            page_path: window.location.pathname + window.location.search,
+          });
+        });
+      </script>
+    </>
+  )
+}
