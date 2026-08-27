@@ -1,5 +1,6 @@
 ---
 import GoogleAnalytics from "@/components/analytics/google-analytics.astro";
+import MicrosoftClarity from "@/components/analytics/microsoft-clarity.astro";
 import "@/styles/global.css";
 
 const { title = "Wuxia Dreams" } = Astro.props;
@@ -9,6 +10,7 @@ const { title = "Wuxia Dreams" } = Astro.props;
 <html lang="en">
   <head>
     <GoogleAnalytics />
+    <MicrosoftClarity />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
