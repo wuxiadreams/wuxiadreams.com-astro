@@ -1,4 +1,5 @@
 ---
+import GoogleAnalytics from "@/components/analytics/google-analytics.astro";
 import "@/styles/global.css";
 
 const { title = "Wuxia Dreams" } = Astro.props;
@@ -7,6 +8,7 @@ const { title = "Wuxia Dreams" } = Astro.props;
 <!doctype html>
 <html lang="en">
   <head>
+    <GoogleAnalytics />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
