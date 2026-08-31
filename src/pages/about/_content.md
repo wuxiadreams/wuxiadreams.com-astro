@@ -20,6 +20,10 @@ By bridging the gap between East and West, we aim to build a community where rea
 
 ### Connect With Us
 
-Your support keeps us going. If you have any suggestions, genre requests, or simply want to share your thoughts on a specific story, feel free to reach out through our feedback channels.
+Your support keeps us going. If you have any suggestions, genre requests, or simply want to share your thoughts on a specific story, join our Discord community:
+
+**[Join Discord — Request a novel](https://discord.gg/6eUYFJJMnE)**
+
+Tell us which titles you want next, report issues, or chat with fellow readers. We read every request.
 
 **Every story is an encounter. Start your journey with us today.**
